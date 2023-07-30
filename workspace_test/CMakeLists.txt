@@ -1,0 +1,97 @@
+cmake_minimum_required(VERSION 3.25)
+project(workspace_test)
+
+set(CMAKE_CXX_STANDARD 14)
+
+include_directories(Test_Git/Core/Inc)
+include_directories(Test_Git/Drivers/CMSIS)
+include_directories(Test_Git/Drivers/CMSIS/Device)
+include_directories(Test_Git/Drivers/CMSIS/Device/ST)
+include_directories(Test_Git/Drivers/CMSIS/Device/ST/STM32F1xx)
+include_directories(Test_Git/Drivers/CMSIS/Device/ST/STM32F1xx/Include)
+include_directories(Test_Git/Drivers/CMSIS/Include)
+include_directories(Test_Git/Drivers/STM32F1xx_HAL_Driver/Inc)
+include_directories(Test_Git/Drivers/STM32F1xx_HAL_Driver/Inc/Legacy)
+
+add_executable(workspace_test
+        .metadata/.plugins/org.eclipse.cdt.make.core/specs.c
+        .metadata/.plugins/org.eclipse.cdt.make.core/specs.cpp
+        .metadata/.plugins/org.eclipse.cdt.managedbuilder.core/spec.c
+        .metadata/.plugins/org.eclipse.cdt.managedbuilder.core/spec.cpp
+        Test_Git/Core/Inc/main.h
+        Test_Git/Core/Inc/stm32f1xx_hal_conf.h
+        Test_Git/Core/Inc/stm32f1xx_it.h
+        Test_Git/Core/Src/main.c
+        Test_Git/Core/Src/stm32f1xx_hal_msp.c
+        Test_Git/Core/Src/stm32f1xx_it.c
+        Test_Git/Core/Src/syscalls.c
+        Test_Git/Core/Src/sysmem.c
+        Test_Git/Core/Src/system_stm32f1xx.c
+        Test_Git/Drivers/CMSIS/Device/ST/STM32F1xx/Include/stm32f103xb.h
+        Test_Git/Drivers/CMSIS/Device/ST/STM32F1xx/Include/stm32f1xx.h
+        Test_Git/Drivers/CMSIS/Device/ST/STM32F1xx/Include/system_stm32f1xx.h
+        Test_Git/Drivers/CMSIS/Include/cmsis_armcc.h
+        Test_Git/Drivers/CMSIS/Include/cmsis_armclang.h
+        Test_Git/Drivers/CMSIS/Include/cmsis_compiler.h
+        Test_Git/Drivers/CMSIS/Include/cmsis_gcc.h
+        Test_Git/Drivers/CMSIS/Include/cmsis_iccarm.h
+        Test_Git/Drivers/CMSIS/Include/cmsis_version.h
+        Test_Git/Drivers/CMSIS/Include/core_armv8mbl.h
+        Test_Git/Drivers/CMSIS/Include/core_armv8mml.h
+        Test_Git/Drivers/CMSIS/Include/core_cm0.h
+        Test_Git/Drivers/CMSIS/Include/core_cm0plus.h
+        Test_Git/Drivers/CMSIS/Include/core_cm1.h
+        Test_Git/Drivers/CMSIS/Include/core_cm23.h
+        Test_Git/Drivers/CMSIS/Include/core_cm3.h
+        Test_Git/Drivers/CMSIS/Include/core_cm33.h
+        Test_Git/Drivers/CMSIS/Include/core_cm4.h
+        Test_Git/Drivers/CMSIS/Include/core_cm7.h
+        Test_Git/Drivers/CMSIS/Include/core_sc000.h
+        Test_Git/Drivers/CMSIS/Include/core_sc300.h
+        Test_Git/Drivers/CMSIS/Include/mpu_armv7.h
+        Test_Git/Drivers/CMSIS/Include/mpu_armv8.h
+        Test_Git/Drivers/CMSIS/Include/tz_context.h
+        Test_Git/Drivers/STM32F1xx_HAL_Driver/Inc/Legacy/stm32_hal_legacy.h
+        Test_Git/Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h
+        Test_Git/Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_adc.h
+        Test_Git/Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_adc_ex.h
+        Test_Git/Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_cortex.h
+        Test_Git/Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_def.h
+        Test_Git/Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_dma.h
+        Test_Git/Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_dma_ex.h
+        Test_Git/Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_exti.h
+        Test_Git/Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash.h
+        Test_Git/Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash_ex.h
+        Test_Git/Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_gpio.h
+        Test_Git/Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_gpio_ex.h
+        Test_Git/Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h
+        Test_Git/Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_rcc.h
+        Test_Git/Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_rcc_ex.h
+        Test_Git/Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h
+        Test_Git/Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h
+        Test_Git/Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_ll_adc.h
+        Test_Git/Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_ll_bus.h
+        Test_Git/Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_ll_cortex.h
+        Test_Git/Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_ll_dma.h
+        Test_Git/Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_ll_exti.h
+        Test_Git/Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_ll_gpio.h
+        Test_Git/Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_ll_pwr.h
+        Test_Git/Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_ll_rcc.h
+        Test_Git/Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_ll_system.h
+        Test_Git/Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_ll_tim.h
+        Test_Git/Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_ll_utils.h
+        Test_Git/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal.c
+        Test_Git/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_adc.c
+        Test_Git/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_adc_ex.c
+        Test_Git/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_cortex.c
+        Test_Git/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_dma.c
+        Test_Git/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_exti.c
+        Test_Git/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_flash.c
+        Test_Git/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_flash_ex.c
+        Test_Git/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_gpio.c
+        Test_Git/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_gpio_ex.c
+        Test_Git/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_pwr.c
+        Test_Git/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_rcc.c
+        Test_Git/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_rcc_ex.c
+        Test_Git/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.c
+        Test_Git/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim_ex.c)

@@ -1,0 +1,3 @@
+C:/Users/alexn/STM32CubeIDE/Gitsync/workspace_test/cmake-build-debug/CMakeFiles/workspace_test.dir
+C:/Users/alexn/STM32CubeIDE/Gitsync/workspace_test/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/alexn/STM32CubeIDE/Gitsync/workspace_test/cmake-build-debug/CMakeFiles/rebuild_cache.dir
