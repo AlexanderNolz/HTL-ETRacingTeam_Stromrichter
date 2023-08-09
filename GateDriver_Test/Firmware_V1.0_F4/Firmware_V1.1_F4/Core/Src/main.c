@@ -54,6 +54,12 @@ PCD_HandleTypeDef hpcd_USB_OTG_FS;
 
 /* USER CODE BEGIN PV */
 
+void recalcduty(uint32_t adc);
+int32_t I_soll=155;
+PI PI1;
+#define KP 5.0f
+#define KI 0.0f
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -112,7 +118,7 @@ int main(void)
   HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_1);
 
   HAL_TIM_Base_Start_IT(&htim2);
-
+  config_PI(&PI1, KP, KI);
 
   /* USER CODE END 2 */
 
@@ -263,7 +269,7 @@ static void MX_TIM1_Init(void)
     Error_Handler();
   }
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 100;
+  sConfigOC.Pulse = 500;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
@@ -474,7 +480,7 @@ static void MX_GPIO_Init(void)
 
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim){
-
+	TIM1->CCR1=(int)(PI1.val);
 	if(htim == &htim1){
 		HAL_GPIO_TogglePin(debug_pin_GPIO_Port, debug_pin_Pin);
 		HAL_ADC_Start_IT(&hadc1);
@@ -492,6 +498,17 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
   adc_in0 = HAL_ADC_GetValue(&hadc1);
   HAL_GPIO_TogglePin(debug_pin_GPIO_Port, debug_pin_Pin);
+  recalcduty(adc_in0);
+}
+
+void recalcduty(uint32_t adc){
+	int error = I_soll+(adc-3080);
+	add_val_PI(&PI1, error, 0.00005f);
+	if(PI1.val >= 1050.0f){
+		PI1.val=1050.0f;
+	}else if(PI1.val <= 0.0f){
+		PI1.val=0.0f;
+	}
 }
 
 /* USER CODE END 4 */
