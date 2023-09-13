@@ -31,5 +31,19 @@ void config_PI(PI *data,float KP,float KI){
 void add_val_PI(PI *data,float newval, float dt){
     add_val_Integrator(&data->I,newval,dt);
     recall_P(&data->P,newval);
-    data->val=data->P.val;//+data->I.val;
+    data->val=data->P.val+data->I.val;
+}
+//funktion zum konfigurieren eines PT1 Gliedes
+void config_PT1(PT1 *data,float K,float tau){
+    data->K=K;
+    data->tau=tau;
+    data->y=0;
+    data->last_Input=0;
+}
+//funktion um einen weitern wert zu einem PT1 Gliedes hinzuzufügen
+float add_val_PT1(PT1 *data,float input, float dt){
+    float error = input-data->last_Input;
+    data->last_Input=input;
+    data->y=data->y+(data->K * error- data->y) * (dt / data->tau);
+    return data->y;
 }

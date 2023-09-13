@@ -22,6 +22,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "Regelungstechnik_lib/Regelungstechnik.h"
+#include "Clark_Transformation/Clark_Transformation.h"
+#include "THIPWM/THIPWM.h"
 
 /* USER CODE END Includes */
 
@@ -32,8 +34,23 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-uint8_t uart3_buffer[5];
-uint32_t adc_in0;
+uint8_t uart3_buffer[16];
+volatile uint32_t adc_in1[3];
+volatile uint32_t adc_in3[3];
+uint32_t test = 4000;
+int32_t adc_offset_korrekt[3];
+uint8_t enable;
+uint32_t adc1_offset[3];
+uint32_t pwm_phasen[3];
+uint32_t strom_soll[3];
+clark Clark;
+THIPWMdata THIPWM;
+
+float I_soll= 0.001f;
+
+PI PI_Regler_alpha,PI_Regler_beta;
+
+float error_alpha, error_beta;
 
 /* USER CODE END PD */
 
@@ -44,32 +61,36 @@ uint32_t adc_in0;
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
+ADC_HandleTypeDef hadc3;
+DMA_HandleTypeDef hdma_adc1;
+DMA_HandleTypeDef hdma_adc3;
 
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
 
 UART_HandleTypeDef huart3;
+DMA_HandleTypeDef hdma_usart3_rx;
 
 PCD_HandleTypeDef hpcd_USB_OTG_FS;
 
 /* USER CODE BEGIN PV */
 
-void recalcduty(uint32_t adc);
-int32_t I_soll=155;
-PI PI1;
-#define KP 5.0f
-#define KI 0.0f
+void recalcduty();
+
+
 
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_USB_OTG_FS_PCD_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_TIM2_Init(void);
+static void MX_ADC3_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -107,18 +128,35 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_USART3_UART_Init();
   MX_USB_OTG_FS_PCD_Init();
   MX_ADC1_Init();
   MX_TIM1_Init();
   MX_TIM2_Init();
+  MX_ADC3_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start_IT(&htim1);
-  HAL_TIM_PWM_Start_IT(&htim1, TIM_CHANNEL_1);
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
   HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_1);
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
+  HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_2);
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
+  HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_3);
 
   HAL_TIM_Base_Start_IT(&htim2);
-  config_PI(&PI1, KP, KI);
+  HAL_UART_Receive_DMA(&huart3, &enable, 1);
+  HAL_ADC_Start_DMA(&hadc3, (uint32_t*) adc_in3, 3);
+
+  init_clark(&Clark);
+#define KP 1.0f
+#define KI 0.1f
+  config_PI(&PI_Regler_alpha, KP, KI);
+  config_PI(&PI_Regler_beta, KP, KI);
+  setupTHIMPWM(1050, &THIPWM);
+
+
+
 
   /* USER CODE END 2 */
 
@@ -126,6 +164,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  HAL_GPIO_WritePin(debug_pin_GPIO_Port, debug_pin_Pin, (enable>>1));
 
     /* USER CODE END WHILE */
 
@@ -203,15 +242,15 @@ static void MX_ADC1_Init(void)
   hadc1.Instance = ADC1;
   hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;
   hadc1.Init.Resolution = ADC_RESOLUTION_12B;
-  hadc1.Init.ScanConvMode = DISABLE;
+  hadc1.Init.ScanConvMode = ENABLE;
   hadc1.Init.ContinuousConvMode = DISABLE;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
   hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
   hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  hadc1.Init.NbrOfConversion = 1;
+  hadc1.Init.NbrOfConversion = 3;
   hadc1.Init.DMAContinuousRequests = DISABLE;
-  hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
+  hadc1.Init.EOCSelection = ADC_EOC_SEQ_CONV;
   if (HAL_ADC_Init(&hadc1) != HAL_OK)
   {
     Error_Handler();
@@ -219,9 +258,27 @@ static void MX_ADC1_Init(void)
 
   /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
   */
-  sConfig.Channel = ADC_CHANNEL_0;
+  sConfig.Channel = ADC_CHANNEL_5;
   sConfig.Rank = 1;
   sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+  */
+  sConfig.Channel = ADC_CHANNEL_6;
+  sConfig.Rank = 2;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+  */
+  sConfig.Channel = ADC_CHANNEL_7;
+  sConfig.Rank = 3;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -229,6 +286,76 @@ static void MX_ADC1_Init(void)
   /* USER CODE BEGIN ADC1_Init 2 */
 
   /* USER CODE END ADC1_Init 2 */
+
+}
+
+/**
+  * @brief ADC3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_ADC3_Init(void)
+{
+
+  /* USER CODE BEGIN ADC3_Init 0 */
+
+  /* USER CODE END ADC3_Init 0 */
+
+  ADC_ChannelConfTypeDef sConfig = {0};
+
+  /* USER CODE BEGIN ADC3_Init 1 */
+
+  /* USER CODE END ADC3_Init 1 */
+
+  /** Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
+  */
+  hadc3.Instance = ADC3;
+  hadc3.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;
+  hadc3.Init.Resolution = ADC_RESOLUTION_12B;
+  hadc3.Init.ScanConvMode = ENABLE;
+  hadc3.Init.ContinuousConvMode = DISABLE;
+  hadc3.Init.DiscontinuousConvMode = DISABLE;
+  hadc3.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
+  hadc3.Init.ExternalTrigConv = ADC_SOFTWARE_START;
+  hadc3.Init.DataAlign = ADC_DATAALIGN_RIGHT;
+  hadc3.Init.NbrOfConversion = 3;
+  hadc3.Init.DMAContinuousRequests = DISABLE;
+  hadc3.Init.EOCSelection = ADC_EOC_SEQ_CONV;
+  if (HAL_ADC_Init(&hadc3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+  */
+  sConfig.Channel = ADC_CHANNEL_8;
+  sConfig.Rank = 1;
+  sConfig.SamplingTime = ADC_SAMPLETIME_480CYCLES;
+  if (HAL_ADC_ConfigChannel(&hadc3, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+  */
+  sConfig.Channel = ADC_CHANNEL_15;
+  sConfig.Rank = 2;
+  if (HAL_ADC_ConfigChannel(&hadc3, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+  */
+  sConfig.Channel = ADC_CHANNEL_9;
+  sConfig.Rank = 3;
+  if (HAL_ADC_ConfigChannel(&hadc3, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN ADC3_Init 2 */
+
+  /* USER CODE END ADC3_Init 2 */
 
 }
 
@@ -252,7 +379,7 @@ static void MX_TIM1_Init(void)
 
   /* USER CODE END TIM1_Init 1 */
   htim1.Instance = TIM1;
-  htim1.Init.Prescaler = 4-1;
+  htim1.Init.Prescaler = 8-1;
   htim1.Init.CounterMode = TIM_COUNTERMODE_CENTERALIGNED1;
   htim1.Init.Period = 1050;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -269,13 +396,21 @@ static void MX_TIM1_Init(void)
     Error_Handler();
   }
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 500;
+  sConfigOC.Pulse = 0;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
   sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
   if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
   {
     Error_Handler();
   }
@@ -358,7 +493,7 @@ static void MX_USART3_UART_Init(void)
 
   /* USER CODE END USART3_Init 1 */
   huart3.Instance = USART3;
-  huart3.Init.BaudRate = 115200;
+  huart3.Init.BaudRate = 9600;
   huart3.Init.WordLength = UART_WORDLENGTH_8B;
   huart3.Init.StopBits = UART_STOPBITS_1;
   huart3.Init.Parity = UART_PARITY_NONE;
@@ -411,6 +546,29 @@ static void MX_USB_OTG_FS_PCD_Init(void)
 }
 
 /**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA2_CLK_ENABLE();
+  __HAL_RCC_DMA1_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA1_Stream1_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream1_IRQn);
+  /* DMA2_Stream1_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream1_IRQn);
+  /* DMA2_Stream4_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream4_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream4_IRQn);
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -423,6 +581,7 @@ static void MX_GPIO_Init(void)
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOF_CLK_ENABLE();
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
@@ -437,7 +596,10 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOB, LD1_Pin|LD3_Pin|LD2_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(USB_PowerSwitchOn_GPIO_Port, USB_PowerSwitchOn_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(test_GPIO_Port, test_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOG, GPIO_PIN_6, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : USER_Btn_Pin */
   GPIO_InitStruct.Pin = USER_Btn_Pin;
@@ -459,12 +621,19 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : USB_PowerSwitchOn_Pin */
-  GPIO_InitStruct.Pin = USB_PowerSwitchOn_Pin;
+  /*Configure GPIO pin : test_Pin */
+  GPIO_InitStruct.Pin = test_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(USB_PowerSwitchOn_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(test_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PG6 */
+  GPIO_InitStruct.Pin = GPIO_PIN_6;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
 
   /*Configure GPIO pin : USB_OverCurrent_Pin */
   GPIO_InitStruct.Pin = USB_OverCurrent_Pin;
@@ -480,35 +649,84 @@ static void MX_GPIO_Init(void)
 
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim){
-	TIM1->CCR1=(int)(PI1.val);
 	if(htim == &htim1){
-		HAL_GPIO_TogglePin(debug_pin_GPIO_Port, debug_pin_Pin);
-		HAL_ADC_Start_IT(&hadc1);
+		if((enable>>1)){
+			TIM1->CCR1=THIPWM.TIMCOMPA;
+			TIM1->CCR2=THIPWM.TIMCOMPB;
+			TIM1->CCR3=THIPWM.TIMCOMPC;
+		}else if(!(enable>>1)){
+			TIM1->CCR1=0;
+			TIM1->CCR2=0;
+			TIM1->CCR3=0;
+		}
+		HAL_GPIO_WritePin(test_GPIO_Port, test_Pin, 1);
+		//HAL_GPIO_TogglePin(test_GPIO_Port, test_Pin);
+		HAL_ADC_Start_DMA(&hadc1, (uint32_t*) adc_in1, 3);
 	}
 
 	if(htim == &htim2){
-		uart3_buffer[0]=adc_in0 & 0xFF;
-		uart3_buffer[1]=(adc_in0>>8) & 0xFF;
-		HAL_UART_Transmit(&huart3, uart3_buffer, 5, 1);
+		// den gemessenen strom in den UART buffer schreiben
+		uart3_buffer[0]=adc_in1[0] & 0xFF;
+		uart3_buffer[1]=(adc_in1[0]>>8) & 0xFF;
+		uart3_buffer[2]=adc_in1[1] & 0xFF;
+		uart3_buffer[3]=(adc_in1[1]>>8) & 0xFF;
+		uart3_buffer[4]=adc_in1[2] & 0xFF;
+		uart3_buffer[5]=(adc_in1[2]>>8) & 0xFF;
+		// den endcoder winkel in den UART buffer schreiben
+		uart3_buffer[6]=adc_in3[0] & 0xFF;
+		uart3_buffer[7]=(adc_in3[0]>>8) &0xFF;
+		uart3_buffer[8]=adc_in3[1] & 0xFF;
+		uart3_buffer[9]=(adc_in3[1]>>8) &0xFF;
+		// den gasgriff wert in den UART buffer schreiben.
+		uart3_buffer[10]=adc_in3[2] & 0xFF;
+		uart3_buffer[11]=(adc_in3[2]>>8) &0xFF;
+		uart3_buffer[12]=(int)(Clark.alpha) & 0xFF;
+		uart3_buffer[13]=((int)(Clark.alpha)>>8) &0xFF;
+		uart3_buffer[12]=(int)(Clark.beta) & 0xFF;
+		uart3_buffer[13]=((int)(Clark.beta)>>8) &0xFF;
+
+		HAL_UART_Transmit_IT(&huart3, uart3_buffer, 16);
 	}
 
 }
+
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
-  adc_in0 = HAL_ADC_GetValue(&hadc1);
-  HAL_GPIO_TogglePin(debug_pin_GPIO_Port, debug_pin_Pin);
-  recalcduty(adc_in0);
+		if(hadc == &hadc1){
+			adc_offset_korrekt[0]=adc_in1[0]-adc1_offset[0];//-adc1_offset;
+			adc_offset_korrekt[1]=adc_in1[1]-adc1_offset[1];//-adc2_offset;
+			adc_offset_korrekt[2]=adc_in1[2]-adc1_offset[2];//-adc3_offset;
+
+			if((enable>>1)){
+				recalcduty(adc_offset_korrekt[0]);
+			}else {
+				adc1_offset[0]=adc_in1[0];
+				adc1_offset[1]=adc_in1[1];
+				adc1_offset[2]=adc_in1[2];
+			}
+		}
+		if(hadc == &hadc3){
+			HAL_ADC_Start_DMA(&hadc3, (uint32_t*) adc_in3, 3);
+
+		}
+
 }
 
-void recalcduty(uint32_t adc){
-	int error = I_soll+(adc-3080);
-	add_val_PI(&PI1, error, 0.00005f);
-	if(PI1.val >= 1050.0f){
-		PI1.val=1050.0f;
-	}else if(PI1.val <= 0.0f){
-		PI1.val=0.0f;
-	}
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *UartHandle){
+	HAL_UART_Receive_DMA(&huart3, &enable, 1);
+}
+
+void recalcduty(){
+	recalc_clark(&Clark, adc_offset_korrekt[0], adc_offset_korrekt[1], adc_offset_korrekt[2]);
+	 int32_t sin = adc_in3[0]-3103;
+	 int32_t cos = adc_in3[1]-3103;
+	error_alpha = sin * I_soll - Clark.alpha;
+	error_beta = cos*I_soll - Clark.beta;
+	add_val_PI(&PI_Regler_alpha, error_alpha, 0.00005);
+	add_val_PI(&PI_Regler_beta, error_beta, 0.00005);
+	vectorrecalc((float)(sin)/100.0f, (float)(cos)/100.0f, 40.0f, &THIPWM);
+	HAL_GPIO_WritePin(test_GPIO_Port, test_Pin, 0);
 }
 
 /* USER CODE END 4 */
