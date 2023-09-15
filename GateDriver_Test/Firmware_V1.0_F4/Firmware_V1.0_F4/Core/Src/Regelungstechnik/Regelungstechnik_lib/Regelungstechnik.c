@@ -22,13 +22,13 @@ void recall_P(P *data,float val){
     data->val= val * data->K;
 }
 //funktion zum konfiguirieren eines PI Gliedes
-void config_PI(PI *data,float KP,float KI){
+void config_PID(PI *data,float KP,float KI){
     config_P(&data->P,KP);
     config_Integrator(&data->I,KI);
     data->val = 0;
 }
 //funktion um einen Weiteren wert zu einem PI Glied hinzuzufügen
-void add_val_PI(PI *data,float newval, float dt){
+void add_val_PID(PI *data,float newval, float dt){
     add_val_Integrator(&data->I,newval,dt);
     recall_P(&data->P,newval);
     data->val=data->P.val+data->I.val;

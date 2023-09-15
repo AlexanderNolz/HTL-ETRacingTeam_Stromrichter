@@ -15,6 +15,15 @@ void recalc_clark(clark *data, float A,float B,float C){
     data->A=A;
     data->B=B;
     data->C=C;
-    data->alpha = _2_3 * (cos0*A+cos120*B+cos240*C);
-    data->beta = _2_3 *(sin0*A+sin120*B+sin240*C);
+    data->alpha = (2.0f/3.0f) * (cosf(0.0f*M_PI/180.0f)*A+cosf(120.0f*M_PI/180.0f)*B+cosf(240.0f*M_PI/180.0f)*C);
+    data->beta = (2.0f/3.0f) *(sinf(0.0f*M_PI/180.0f)*A+sinf(120.0f*M_PI/180.0f)*B+sinf(240.0f*M_PI/180.0f)*C);
+}
+
+
+void recalc_park(park *data, float d, float q, float theta){
+	data->d=d;
+	data->q=q;
+	data->theta=theta;
+	data->alpha= data->d * sinf(theta) - data->q * cosf(data->theta);
+	data->beta=data->d * sinf(theta) + data->q * cos(theta);
 }

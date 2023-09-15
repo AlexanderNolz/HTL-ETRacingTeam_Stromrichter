@@ -16,12 +16,18 @@ typedef struct P{
 }P;
 //PI struct
 typedef struct PI{
-    Integrator I;
-    P P;
-    float val;
+	float K_r;
+	float ek;
+	float ek_1;
+	float ek_2;
+	float uk_1;
+	float T;
+	float Tn;
+	float Tv;
+    float uk;
 }PI;
 typedef struct PT1{
-    float K; //Verstärkung
+    float Kv; //Verstärkung
     float tau; //Zeitkonstante
     float y; // Ausgang
     float last_Input; //Letzter Eingang
@@ -37,9 +43,9 @@ void config_P(P *data,float K);
 //funktion um den neuen Wert neu zu berechnen
 void recall_P(P *data,float val);
 //funktion zum konfiguirieren eines PI Gliedes
-void config_PI(PI *data,float KP,float KI);
+void config_PID(PI *data,float K_r,float T, float Tn, float Tv);
 //funktion um einen Weiteren wert zu einem PI Glied hinzuzufügen
-void add_val_PI(PI *data,float newval,float dt);
+void add_val_PID(PI *data,float ek);
 //funktion zum konfigurieren eines PT1 Gliedes
 void config_PT1(PT1 *data,float K,float tau);
 //funktion um einen weitern wert zu einem PT1 Gliedes hinzuzufügen

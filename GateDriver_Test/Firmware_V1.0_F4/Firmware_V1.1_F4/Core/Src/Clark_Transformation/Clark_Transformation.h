@@ -6,19 +6,24 @@
 #define REGELUNGSTECHNIK_CLARK_TRANSFORMATION_H
 #include "math.h"
 
-#define sin0 0.0f
-#define sin120 0.580611f
-#define sin240 0.945445f
-#define cos0 1.0f
-#define cos120 0.814181f
-#define cos240 0.325781
-#define _2_3 (2.0f/3.0f)
-
 typedef struct clark{
     float A,B,C,alpha,beta;
 }clark;
 
+typedef struct park{
+	float d,q,alpha,beta,theta;
+}park;
+
+#define park_default {	\
+		.d=0,				\
+		.q=0,				\
+		.alpha=0,			\
+		.beta=0,			\
+		.theta=0			\
+};
+
 void init_clark(clark *data);
 void recalc_clark(clark *data, float A,float B,float C);
+void recalc_park(park *data, float d, float q, float theta);
 
 #endif //REGELUNGSTECHNIK_CLARK_TRANSFORMATION_H

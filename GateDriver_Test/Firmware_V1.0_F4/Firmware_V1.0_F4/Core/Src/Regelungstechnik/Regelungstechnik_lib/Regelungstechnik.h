@@ -29,9 +29,9 @@ void config_P(P *data,float K);
 //funktion um den neuen Wert neu zu berechnen
 void recall_P(P *data,float val);
 //funktion zum konfiguirieren eines PI Gliedes
-void config_PI(PI *data,float KP,float KI);
+void config_PID(PI *data,float KP,float KI);
 //funktion um einen Weiteren wert zu einem PI Glied hinzuzufügen
-void add_val_PI(PI *data,float newval,float dt);
+void add_val_PID(PI *data,float newval,float dt);
 
 
 #endif //REGELUNGSTECHNIK_REGELUNGSTECHNIK_H

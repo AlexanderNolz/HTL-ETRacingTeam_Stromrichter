@@ -38,19 +38,18 @@ uint8_t uart3_buffer[16];
 volatile uint32_t adc_in1[3];
 volatile uint32_t adc_in3[3];
 uint32_t test = 4000;
-int32_t adc_offset_korrekt[3];
+int16_t adc_offset_korrekt[3];
 uint8_t enable;
 uint32_t adc1_offset[3];
 uint32_t pwm_phasen[3];
-uint32_t strom_soll[3];
+float strom_ist[3];
 clark Clark;
+park Park1 = park_default;
 THIPWMdata THIPWM;
 
-float I_soll= 0.001f;
+PI PI_Regler_alpha;
+PI PI_Regler_beta;
 
-PI PI_Regler_alpha,PI_Regler_beta;
-
-float error_alpha, error_beta;
 
 /* USER CODE END PD */
 
@@ -149,14 +148,16 @@ int main(void)
   HAL_ADC_Start_DMA(&hadc3, (uint32_t*) adc_in3, 3);
 
   init_clark(&Clark);
-#define KP 1.0f
-#define KI 0.1f
-  config_PI(&PI_Regler_alpha, KP, KI);
-  config_PI(&PI_Regler_beta, KP, KI);
+#define Kr 0.86f
+#define TN 0.0002f
+#define TV 0.000048f
+
+#define Is_d 0.0f
+#define Is_q 5.0f
+
+  config_PID(&PI_Regler_alpha,Kr,0.0000625,TN,TV);
+  config_PID(&PI_Regler_beta, Kr,0.0000625,TN,TV);
   setupTHIMPWM(1050, &THIPWM);
-
-
-
 
   /* USER CODE END 2 */
 
@@ -260,7 +261,7 @@ static void MX_ADC1_Init(void)
   */
   sConfig.Channel = ADC_CHANNEL_5;
   sConfig.Rank = 1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
+  sConfig.SamplingTime = ADC_SAMPLETIME_144CYCLES;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -379,7 +380,7 @@ static void MX_TIM1_Init(void)
 
   /* USER CODE END TIM1_Init 1 */
   htim1.Instance = TIM1;
-  htim1.Init.Prescaler = 8-1;
+  htim1.Init.Prescaler = 5-1;
   htim1.Init.CounterMode = TIM_COUNTERMODE_CENTERALIGNED1;
   htim1.Init.Period = 1050;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -658,6 +659,13 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim){
 			TIM1->CCR1=0;
 			TIM1->CCR2=0;
 			TIM1->CCR3=0;
+
+			PI_Regler_alpha.ek_1 = 0;
+			PI_Regler_alpha.ek_2 = 0;
+			PI_Regler_alpha.uk_1 = 0;
+			PI_Regler_beta.ek_1 = 0;
+			PI_Regler_beta.ek_2 = 0;
+			PI_Regler_beta.uk_1 = 0;
 		}
 		HAL_GPIO_WritePin(test_GPIO_Port, test_Pin, 1);
 		//HAL_GPIO_TogglePin(test_GPIO_Port, test_Pin);
@@ -666,12 +674,12 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim){
 
 	if(htim == &htim2){
 		// den gemessenen strom in den UART buffer schreiben
-		uart3_buffer[0]=adc_in1[0] & 0xFF;
-		uart3_buffer[1]=(adc_in1[0]>>8) & 0xFF;
-		uart3_buffer[2]=adc_in1[1] & 0xFF;
-		uart3_buffer[3]=(adc_in1[1]>>8) & 0xFF;
-		uart3_buffer[4]=adc_in1[2] & 0xFF;
-		uart3_buffer[5]=(adc_in1[2]>>8) & 0xFF;
+		uart3_buffer[0]=adc_offset_korrekt[0] & 0xFF;
+		uart3_buffer[1]=(adc_offset_korrekt[0]>>8) & 0xFF;
+		uart3_buffer[2]=adc_offset_korrekt[1] & 0xFF;
+		uart3_buffer[3]=(adc_offset_korrekt[1]>>8) & 0xFF;
+		uart3_buffer[4]=adc_offset_korrekt[2] & 0xFF;
+		uart3_buffer[5]=(adc_offset_korrekt[2]>>8) & 0xFF;
 		// den endcoder winkel in den UART buffer schreiben
 		uart3_buffer[6]=adc_in3[0] & 0xFF;
 		uart3_buffer[7]=(adc_in3[0]>>8) &0xFF;
@@ -694,11 +702,15 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim){
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
 		if(hadc == &hadc1){
+
 			adc_offset_korrekt[0]=adc_in1[0]-adc1_offset[0];//-adc1_offset;
 			adc_offset_korrekt[1]=adc_in1[1]-adc1_offset[1];//-adc2_offset;
 			adc_offset_korrekt[2]=adc_in1[2]-adc1_offset[2];//-adc3_offset;
 
 			if((enable>>1)){
+				strom_ist[0]=(float)(adc_offset_korrekt[0])/10.0f;
+				strom_ist[1]=(float)(adc_offset_korrekt[1])/10.0f;
+				strom_ist[2]=(float)(adc_offset_korrekt[2])/10.0f;
 				recalcduty(adc_offset_korrekt[0]);
 			}else {
 				adc1_offset[0]=adc_in1[0];
@@ -718,14 +730,16 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *UartHandle){
 }
 
 void recalcduty(){
-	recalc_clark(&Clark, adc_offset_korrekt[0], adc_offset_korrekt[1], adc_offset_korrekt[2]);
+	recalc_clark(&Clark, strom_ist[0], strom_ist[1], strom_ist[2]);
 	 int32_t sin = adc_in3[0]-3103;
 	 int32_t cos = adc_in3[1]-3103;
-	error_alpha = sin * I_soll - Clark.alpha;
-	error_beta = cos*I_soll - Clark.beta;
-	add_val_PI(&PI_Regler_alpha, error_alpha, 0.00005);
-	add_val_PI(&PI_Regler_beta, error_beta, 0.00005);
-	vectorrecalc((float)(sin)/100.0f, (float)(cos)/100.0f, 40.0f, &THIPWM);
+	 float theta= atanf(cos/sin);
+	 recalc_park(&Park1, Is_d, Is_q, theta);
+	float error_alpha = Park1.alpha - Clark.alpha;
+	float error_beta = Park1.beta - Clark.beta;
+	add_val_PID(&PI_Regler_alpha,error_alpha);
+	add_val_PID(&PI_Regler_beta, error_beta);
+	vectorrecalc(PI_Regler_alpha.uk, PI_Regler_beta.uk, 40.0f, &THIPWM);
 	HAL_GPIO_WritePin(test_GPIO_Port, test_Pin, 0);
 }
 
