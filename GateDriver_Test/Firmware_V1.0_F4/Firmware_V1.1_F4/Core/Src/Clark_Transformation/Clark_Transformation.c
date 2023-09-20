@@ -24,6 +24,6 @@ void recalc_park(park *data, float d, float q, float theta){
 	data->d=d;
 	data->q=q;
 	data->theta=theta;
-	data->alpha= data->d * sinf(theta) - data->q * cosf(data->theta);
-	data->beta=data->d * sinf(theta) + data->q * cos(theta);
+	data->alpha= data->d * cosf(data->theta) - data->q * sinf(data->theta);
+	data->beta=data->d * sinf(data->theta) + data->q * cosf(data->theta);
 }

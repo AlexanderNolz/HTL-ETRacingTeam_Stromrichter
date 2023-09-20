@@ -24,6 +24,7 @@
 #include "Regelungstechnik_lib/Regelungstechnik.h"
 #include "Clark_Transformation/Clark_Transformation.h"
 #include "THIPWM/THIPWM.h"
+#include "math.h"
 
 /* USER CODE END Includes */
 
@@ -43,12 +44,16 @@ uint8_t enable;
 uint32_t adc1_offset[3];
 uint32_t pwm_phasen[3];
 float strom_ist[3];
+float Is_d,Is_q;
+float theta;
 clark Clark;
 park Park1 = park_default;
 THIPWMdata THIPWM;
 
 PI PI_Regler_alpha;
 PI PI_Regler_beta;
+
+float gasgriff();
 
 
 /* USER CODE END PD */
@@ -106,6 +111,7 @@ static void MX_ADC3_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
+	Is_d=0;
 
   /* USER CODE END 1 */
 
@@ -148,12 +154,11 @@ int main(void)
   HAL_ADC_Start_DMA(&hadc3, (uint32_t*) adc_in3, 3);
 
   init_clark(&Clark);
-#define Kr 0.86f
+#define Kr 0.7f
 #define TN 0.0002f
 #define TV 0.000048f
 
-#define Is_d 0.0f
-#define Is_q 5.0f
+
 
   config_PID(&PI_Regler_alpha,Kr,0.0000625,TN,TV);
   config_PID(&PI_Regler_beta, Kr,0.0000625,TN,TV);
@@ -454,7 +459,7 @@ static void MX_TIM2_Init(void)
   htim2.Instance = TIM2;
   htim2.Init.Prescaler = 1680;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 10000;
+  htim2.Init.Period = 5000;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
@@ -494,7 +499,7 @@ static void MX_USART3_UART_Init(void)
 
   /* USER CODE END USART3_Init 1 */
   huart3.Instance = USART3;
-  huart3.Init.BaudRate = 9600;
+  huart3.Init.BaudRate = 115200;
   huart3.Init.WordLength = UART_WORDLENGTH_8B;
   huart3.Init.StopBits = UART_STOPBITS_1;
   huart3.Init.Parity = UART_PARITY_NONE;
@@ -670,6 +675,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim){
 		HAL_GPIO_WritePin(test_GPIO_Port, test_Pin, 1);
 		//HAL_GPIO_TogglePin(test_GPIO_Port, test_Pin);
 		HAL_ADC_Start_DMA(&hadc1, (uint32_t*) adc_in1, 3);
+		 int32_t sin = adc_in3[1]-3103;
+		 int32_t cos = adc_in3[0]-3103;
+		 theta= atan2f((float)(cos),(float)(sin));
+		 Is_q=15.0f*gasgriff();
 	}
 
 	if(htim == &htim2){
@@ -681,17 +690,23 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim){
 		uart3_buffer[4]=adc_offset_korrekt[2] & 0xFF;
 		uart3_buffer[5]=(adc_offset_korrekt[2]>>8) & 0xFF;
 		// den endcoder winkel in den UART buffer schreiben
-		uart3_buffer[6]=adc_in3[0] & 0xFF;
-		uart3_buffer[7]=(adc_in3[0]>>8) &0xFF;
-		uart3_buffer[8]=adc_in3[1] & 0xFF;
-		uart3_buffer[9]=(adc_in3[1]>>8) &0xFF;
+		float theta_u = 4000.0f + (500.0f*theta);
+		uart3_buffer[6]= (int)(theta_u)& 0xFF;
+		uart3_buffer[7]=((int)(theta_u)>>8) &0xFF;
 		// den gasgriff wert in den UART buffer schreiben.
 		uart3_buffer[10]=adc_in3[2] & 0xFF;
 		uart3_buffer[11]=(adc_in3[2]>>8) &0xFF;
-		uart3_buffer[12]=(int)(Clark.alpha) & 0xFF;
-		uart3_buffer[13]=((int)(Clark.alpha)>>8) &0xFF;
-		uart3_buffer[12]=(int)(Clark.beta) & 0xFF;
-		uart3_buffer[13]=((int)(Clark.beta)>>8) &0xFF;
+
+		// Id und Iq werden in den UART buffer geschrieben
+		float I_q = 4000.0f+(266.0f*Park1.alpha);
+		float I_d = 4000.0f+(266.0f*Park1.beta);
+		uart3_buffer[12]=(int)(I_q) & 0xFF;
+		uart3_buffer[13]=((int)(I_q)>>8) &0xFF;
+		uart3_buffer[14]=(int)(I_d) & 0xFF;
+		uart3_buffer[15]=((int)(I_d)>>8) &0xFF;
+		// Ia und Ib werden in den buffer geschrieben
+
+
 
 		HAL_UART_Transmit_IT(&huart3, uart3_buffer, 16);
 	}
@@ -731,16 +746,28 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *UartHandle){
 
 void recalcduty(){
 	recalc_clark(&Clark, strom_ist[0], strom_ist[1], strom_ist[2]);
-	 int32_t sin = adc_in3[0]-3103;
-	 int32_t cos = adc_in3[1]-3103;
-	 float theta= atanf(cos/sin);
 	 recalc_park(&Park1, Is_d, Is_q, theta);
 	float error_alpha = Park1.alpha - Clark.alpha;
-	float error_beta = Park1.beta - Clark.beta;
+	float error_beta = -Park1.beta - Clark.beta;
 	add_val_PID(&PI_Regler_alpha,error_alpha);
 	add_val_PID(&PI_Regler_beta, error_beta);
 	vectorrecalc(PI_Regler_alpha.uk, PI_Regler_beta.uk, 40.0f, &THIPWM);
 	HAL_GPIO_WritePin(test_GPIO_Port, test_Pin, 0);
+}
+
+float gasgriff(){
+
+	int gas_null = adc_in3[2] - 1050;
+	float val;
+
+	if(gas_null > 0){
+		val = (float)(gas_null)/2200.0f;
+	}else if(gas_null > 2200){
+		val = 1.0f;
+	}else if(0>gas_null){
+		val = 0.0f;
+	}
+	return val;
 }
 
 /* USER CODE END 4 */
