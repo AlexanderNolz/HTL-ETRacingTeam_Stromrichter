@@ -1,0 +1,536 @@
+cmake_minimum_required(VERSION 3.25)
+project(GUI_windows)
+
+set(CMAKE_CXX_STANDARD 14)
+
+include_directories(Com_viso/generated/fonts/include)
+include_directories(Com_viso/generated/fonts/include/fonts)
+include_directories(Com_viso/generated/gui_generated/include)
+include_directories(Com_viso/generated/gui_generated/include/gui_generated)
+include_directories(Com_viso/generated/gui_generated/include/gui_generated/common)
+include_directories(Com_viso/generated/gui_generated/include/gui_generated/screen1_screen)
+include_directories(Com_viso/generated/images/include)
+include_directories(Com_viso/generated/images/include/images)
+include_directories(Com_viso/generated/simulator/include)
+include_directories(Com_viso/generated/simulator/include/simulator)
+include_directories(Com_viso/generated/simulator/include/simulator/video)
+include_directories(Com_viso/generated/texts/include)
+include_directories(Com_viso/generated/texts/include/texts)
+include_directories(Com_viso/generated/videos)
+include_directories(Com_viso/generated/videos/include)
+include_directories(Com_viso/generated/videos/include/videos)
+include_directories(Com_viso/gui/include)
+include_directories(Com_viso/gui/include/gui)
+include_directories(Com_viso/gui/include/gui/common)
+include_directories(Com_viso/gui/include/gui/model)
+include_directories(Com_viso/gui/include/gui/screen1_screen)
+include_directories(Com_viso/touchgfx/3rdparty)
+include_directories(Com_viso/touchgfx/3rdparty/libjpeg)
+include_directories(Com_viso/touchgfx/3rdparty/libjpeg/include)
+include_directories(Com_viso/touchgfx/framework/include)
+include_directories(Com_viso/touchgfx/framework/include/common)
+include_directories(Com_viso/touchgfx/framework/include/mvp)
+include_directories(Com_viso/touchgfx/framework/include/platform)
+include_directories(Com_viso/touchgfx/framework/include/platform/core)
+include_directories(Com_viso/touchgfx/framework/include/platform/driver)
+include_directories(Com_viso/touchgfx/framework/include/platform/driver/button)
+include_directories(Com_viso/touchgfx/framework/include/platform/driver/i2c)
+include_directories(Com_viso/touchgfx/framework/include/platform/driver/lcd)
+include_directories(Com_viso/touchgfx/framework/include/platform/driver/touch)
+include_directories(Com_viso/touchgfx/framework/include/platform/hal)
+include_directories(Com_viso/touchgfx/framework/include/platform/hal/simulator)
+include_directories(Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2)
+include_directories(Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor)
+include_directories(Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2)
+include_directories(Com_viso/touchgfx/framework/include/touchgfx)
+include_directories(Com_viso/touchgfx/framework/include/touchgfx/canvas_widget_renderer)
+include_directories(Com_viso/touchgfx/framework/include/touchgfx/containers)
+include_directories(Com_viso/touchgfx/framework/include/touchgfx/containers/buttons)
+include_directories(Com_viso/touchgfx/framework/include/touchgfx/containers/clock)
+include_directories(Com_viso/touchgfx/framework/include/touchgfx/containers/progress_indicators)
+include_directories(Com_viso/touchgfx/framework/include/touchgfx/containers/scrollers)
+include_directories(Com_viso/touchgfx/framework/include/touchgfx/events)
+include_directories(Com_viso/touchgfx/framework/include/touchgfx/hal)
+include_directories(Com_viso/touchgfx/framework/include/touchgfx/lcd)
+include_directories(Com_viso/touchgfx/framework/include/touchgfx/mixins)
+include_directories(Com_viso/touchgfx/framework/include/touchgfx/transforms)
+include_directories(Com_viso/touchgfx/framework/include/touchgfx/transitions)
+include_directories(Com_viso/touchgfx/framework/include/touchgfx/widgets)
+include_directories(Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas)
+include_directories(Com_viso/touchgfx/framework/include/touchgfx/widgets/graph)
+
+add_executable(GUI_windows
+        Com_viso/generated/fonts/include/fonts/ApplicationFontProvider.hpp
+        Com_viso/generated/fonts/include/fonts/CachedFont.hpp
+        Com_viso/generated/fonts/include/fonts/FontCache.hpp
+        Com_viso/generated/fonts/include/fonts/GeneratedFont.hpp
+        Com_viso/generated/fonts/include/fonts/UnmappedDataFont.hpp
+        Com_viso/generated/fonts/src/ApplicationFontProvider.cpp
+        Com_viso/generated/fonts/src/CachedFont.cpp
+        Com_viso/generated/fonts/src/Font_verdana_10_4bpp_0.cpp
+        Com_viso/generated/fonts/src/Font_verdana_20_4bpp_0.cpp
+        Com_viso/generated/fonts/src/Font_verdana_40_4bpp_0.cpp
+        Com_viso/generated/fonts/src/FontCache.cpp
+        Com_viso/generated/fonts/src/GeneratedFont.cpp
+        Com_viso/generated/fonts/src/Kerning_verdana_10_4bpp.cpp
+        Com_viso/generated/fonts/src/Kerning_verdana_20_4bpp.cpp
+        Com_viso/generated/fonts/src/Kerning_verdana_40_4bpp.cpp
+        Com_viso/generated/fonts/src/Table_verdana_10_4bpp.cpp
+        Com_viso/generated/fonts/src/Table_verdana_20_4bpp.cpp
+        Com_viso/generated/fonts/src/Table_verdana_40_4bpp.cpp
+        Com_viso/generated/fonts/src/UnmappedDataFont.cpp
+        Com_viso/generated/gui_generated/include/gui_generated/common/FrontendApplicationBase.hpp
+        Com_viso/generated/gui_generated/include/gui_generated/common/FrontendHeapBase.hpp
+        Com_viso/generated/gui_generated/include/gui_generated/common/SimConstants.hpp
+        Com_viso/generated/gui_generated/include/gui_generated/screen1_screen/Screen1ViewBase.hpp
+        Com_viso/generated/gui_generated/src/common/FrontendApplicationBase.cpp
+        Com_viso/generated/gui_generated/src/screen1_screen/Screen1ViewBase.cpp
+        Com_viso/generated/images/include/images/BitmapDatabase.hpp
+        Com_viso/generated/images/include/images/SVGDatabase.hpp
+        Com_viso/generated/images/include/BitmapDatabase.hpp
+        Com_viso/generated/images/src/__generated/image_alternate_theme_images_widgets_togglebutton_medium_rounded_off_light.cpp
+        Com_viso/generated/images/src/__generated/image_alternate_theme_images_widgets_togglebutton_medium_rounded_on_normal.cpp
+        Com_viso/generated/images/src/BitmapDatabase.cpp
+        Com_viso/generated/images/src/image_logo.cpp
+        Com_viso/generated/images/src/SVGDatabase.cpp
+        Com_viso/generated/simulator/include/simulator/video/DirectFrameBufferVideoController.hpp
+        Com_viso/generated/simulator/include/simulator/video/MJPEGDecoder.hpp
+        Com_viso/generated/simulator/include/simulator/video/SoftwareMJPEGDecoder.hpp
+        Com_viso/generated/simulator/include/simulator/mainBase.hpp
+        Com_viso/generated/simulator/src/video/SoftwareMJPEGDecoder.cpp
+        Com_viso/generated/simulator/src/mainBase.cpp
+        Com_viso/generated/texts/include/texts/TextKeysAndLanguages.hpp
+        Com_viso/generated/texts/include/texts/TypedTextDatabase.hpp
+        Com_viso/generated/texts/src/LanguageGb.cpp
+        Com_viso/generated/texts/src/Texts.cpp
+        Com_viso/generated/texts/src/TypedTextDatabase.cpp
+        Com_viso/generated/videos/include/videos/VideoDatabase.hpp
+        Com_viso/gui/include/gui/common/FrontendApplication.hpp
+        Com_viso/gui/include/gui/common/FrontendHeap.hpp
+        Com_viso/gui/include/gui/model/Model.hpp
+        Com_viso/gui/include/gui/model/ModelListener.hpp
+        Com_viso/gui/include/gui/screen1_screen/Screen1Presenter.hpp
+        Com_viso/gui/include/gui/screen1_screen/Screen1View.hpp
+        Com_viso/gui/src/common/FrontendApplication.cpp
+        Com_viso/gui/src/model/Model.cpp
+        Com_viso/gui/src/screen1_screen/Screen1Presenter.cpp
+        Com_viso/gui/src/screen1_screen/Screen1View.cpp
+        Com_viso/simulator/main.cpp
+        Com_viso/touchgfx/3rdparty/libjpeg/include/cderror.h
+        Com_viso/touchgfx/3rdparty/libjpeg/include/cdjpeg.h
+        Com_viso/touchgfx/3rdparty/libjpeg/include/jconfig.h
+        Com_viso/touchgfx/3rdparty/libjpeg/include/jdct.h
+        Com_viso/touchgfx/3rdparty/libjpeg/include/jerror.h
+        Com_viso/touchgfx/3rdparty/libjpeg/include/jinclude.h
+        Com_viso/touchgfx/3rdparty/libjpeg/include/jmemsys.h
+        Com_viso/touchgfx/3rdparty/libjpeg/include/jmorecfg.h
+        Com_viso/touchgfx/3rdparty/libjpeg/include/jpegint.h
+        Com_viso/touchgfx/3rdparty/libjpeg/include/jpeglib.h
+        Com_viso/touchgfx/3rdparty/libjpeg/include/jversion.h
+        Com_viso/touchgfx/3rdparty/libjpeg/include/transupp.h
+        Com_viso/touchgfx/framework/include/common/AbstractPartition.hpp
+        Com_viso/touchgfx/framework/include/common/Meta.hpp
+        Com_viso/touchgfx/framework/include/common/Partition.hpp
+        Com_viso/touchgfx/framework/include/common/TouchGFXInit.hpp
+        Com_viso/touchgfx/framework/include/mvp/MVPApplication.hpp
+        Com_viso/touchgfx/framework/include/mvp/MVPHeap.hpp
+        Com_viso/touchgfx/framework/include/mvp/Presenter.hpp
+        Com_viso/touchgfx/framework/include/mvp/View.hpp
+        Com_viso/touchgfx/framework/include/platform/core/MCUInstrumentation.hpp
+        Com_viso/touchgfx/framework/include/platform/driver/button/ButtonController.hpp
+        Com_viso/touchgfx/framework/include/platform/driver/i2c/I2C.hpp
+        Com_viso/touchgfx/framework/include/platform/driver/lcd/LCD16bpp.hpp
+        Com_viso/touchgfx/framework/include/platform/driver/lcd/LCD16bppSerialFlash.hpp
+        Com_viso/touchgfx/framework/include/platform/driver/lcd/LCD1bpp.hpp
+        Com_viso/touchgfx/framework/include/platform/driver/lcd/LCD24bpp.hpp
+        Com_viso/touchgfx/framework/include/platform/driver/lcd/LCD2bpp.hpp
+        Com_viso/touchgfx/framework/include/platform/driver/lcd/LCD32bpp.hpp
+        Com_viso/touchgfx/framework/include/platform/driver/lcd/LCD32bpp_XRGB8888.hpp
+        Com_viso/touchgfx/framework/include/platform/driver/lcd/LCD4bpp.hpp
+        Com_viso/touchgfx/framework/include/platform/driver/lcd/LCD8bpp_ABGR2222.hpp
+        Com_viso/touchgfx/framework/include/platform/driver/lcd/LCD8bpp_ARGB2222.hpp
+        Com_viso/touchgfx/framework/include/platform/driver/lcd/LCD8bpp_BGRA2222.hpp
+        Com_viso/touchgfx/framework/include/platform/driver/lcd/LCD8bpp_RGBA2222.hpp
+        Com_viso/touchgfx/framework/include/platform/driver/touch/I2CTouchController.hpp
+        Com_viso/touchgfx/framework/include/platform/driver/touch/NoTouchController.hpp
+        Com_viso/touchgfx/framework/include/platform/driver/touch/SDL2TouchController.hpp
+        Com_viso/touchgfx/framework/include/platform/driver/touch/SDLTouchController.hpp
+        Com_viso/touchgfx/framework/include/platform/driver/touch/TouchController.hpp
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/begin_code.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/close_code.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_assert.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_atomic.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_audio.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_bits.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_blendmode.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_clipboard.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_config.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_config_android.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_config_iphoneos.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_config_macosx.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_config_minimal.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_config_pandora.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_config_psp.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_config_windows.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_config_winrt.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_config_wiz.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_copying.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_cpuinfo.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_egl.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_endian.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_error.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_events.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_filesystem.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_gamecontroller.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_gesture.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_haptic.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_hints.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_image.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_joystick.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_keyboard.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_keycode.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_loadso.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_log.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_main.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_messagebox.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_mouse.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_mutex.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_name.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_opengl.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_opengl_glext.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_opengles.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_opengles2.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_opengles2_gl2.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_opengles2_gl2ext.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_opengles2_gl2platform.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_opengles2_khrplatform.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_pixels.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_platform.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_power.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_quit.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_rect.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_render.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_revision.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_rwops.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_scancode.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_shape.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_stdinc.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_surface.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_system.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_syswm.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_test.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_test_assert.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_test_common.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_test_compare.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_test_crc32.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_test_font.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_test_fuzzer.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_test_harness.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_test_images.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_test_log.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_test_md5.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_test_random.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_thread.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_timer.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_touch.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_types.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_version.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/vendor/SDL2/SDL_video.h
+        Com_viso/touchgfx/framework/include/platform/hal/simulator/sdl2/HALSDL2.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/canvas_widget_renderer/CanvasWidgetRenderer.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/canvas_widget_renderer/Cell.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/canvas_widget_renderer/Outline.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/canvas_widget_renderer/Rasterizer.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/containers/buttons/AbstractButtonContainer.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/containers/buttons/AnimatedImageButtonStyle.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/containers/buttons/BoxWithBorderButtonStyle.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/containers/buttons/Buttons.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/containers/buttons/ClickButtonTrigger.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/containers/buttons/IconButtonStyle.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/containers/buttons/ImageButtonStyle.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/containers/buttons/RepeatButtonTrigger.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/containers/buttons/TextButtonStyle.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/containers/buttons/TiledImageButtonStyle.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/containers/buttons/ToggleButtonTrigger.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/containers/buttons/TouchButtonTrigger.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/containers/buttons/TwoWildcardTextButtonStyle.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/containers/buttons/WildcardTextButtonStyle.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/containers/clock/AbstractClock.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/containers/clock/AnalogClock.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/containers/clock/DigitalClock.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/containers/progress_indicators/AbstractDirectionProgress.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/containers/progress_indicators/AbstractProgressIndicator.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/containers/progress_indicators/BoxProgress.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/containers/progress_indicators/CircleProgress.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/containers/progress_indicators/ImageProgress.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/containers/progress_indicators/LineProgress.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/containers/progress_indicators/TextProgress.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/containers/scrollers/DrawableList.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/containers/scrollers/ScrollBase.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/containers/scrollers/ScrollList.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/containers/scrollers/ScrollWheel.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/containers/scrollers/ScrollWheelBase.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/containers/scrollers/ScrollWheelWithSelectionStyle.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/containers/CacheableContainer.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/containers/Container.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/containers/ListLayout.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/containers/ModalWindow.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/containers/ScrollableContainer.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/containers/SlideMenu.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/containers/Slider.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/containers/SwipeContainer.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/containers/ZoomAnimationImage.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/events/ClickEvent.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/events/DragEvent.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/events/GestureEvent.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/hal/Atomic.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/hal/BlitOp.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/hal/BoardConfiguration.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/hal/Buttons.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/hal/Config.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/hal/DMA.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/hal/FlashDataReader.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/hal/FrameBufferAllocator.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/hal/Gestures.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/hal/GPIO.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/hal/HAL.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/hal/NoDMA.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/hal/OSWrappers.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/hal/Paint.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/hal/PaintImpl.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/hal/PaintRGB565Impl.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/hal/PaintRGB888Impl.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/hal/PartialFrameBufferManager.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/hal/Types.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/hal/VectorRenderer.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/hal/VGData.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/hal/VideoController.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/lcd/DebugPrinter.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/lcd/LCD.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/lcd/LCD16DebugPrinter.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/lcd/LCD1DebugPrinter.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/lcd/LCD24DebugPrinter.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/lcd/LCD2DebugPrinter.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/lcd/LCD32DebugPrinter.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/lcd/LCD4DebugPrinter.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/lcd/LCD8ABGR2222DebugPrinter.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/lcd/LCD8ARGB2222DebugPrinter.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/lcd/LCD8BGRA2222DebugPrinter.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/lcd/LCD8DebugPrinterBase.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/lcd/LCD8RGBA2222DebugPrinter.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/mixins/ClickListener.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/mixins/Draggable.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/mixins/FadeAnimator.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/mixins/MoveAnimator.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/mixins/Snapper.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/transforms/DisplayTransformation.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/transforms/TouchCalibration.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/transitions/BlockTransition.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/transitions/CoverTransition.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/transitions/NoTransition.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/transitions/SlideTransition.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/transitions/Transition.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/transitions/WipeTransition.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/AbstractPainter.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/AbstractPainterABGR2222.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/AbstractPainterARGB2222.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/AbstractPainterARGB8888.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/AbstractPainterBGRA2222.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/AbstractPainterBitmap.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/AbstractPainterBW.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/AbstractPainterColor.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/AbstractPainterGRAY2.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/AbstractPainterGRAY4.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/AbstractPainterLinearGradient.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/AbstractPainterRGB565.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/AbstractPainterRGB888.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/AbstractPainterRGBA2222.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/AbstractShape.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/Canvas.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/CanvasWidget.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/Circle.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/CWRUtil.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/CWRVectorRenderer.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/Line.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/PainterABGR2222.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/PainterABGR2222Bitmap.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/PainterARGB2222.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/PainterARGB2222Bitmap.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/PainterARGB8888.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/PainterARGB8888Bitmap.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/PainterARGB8888L8Bitmap.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/PainterBGRA2222.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/PainterBGRA2222Bitmap.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/PainterBW.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/PainterBWBitmap.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/PainterGRAY2.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/PainterGRAY2Bitmap.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/PainterGRAY4.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/PainterGRAY4Bitmap.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/PainterRGB565.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/PainterRGB565Bitmap.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/PainterRGB565L8Bitmap.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/PainterRGB565LinearGradient.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/PainterRGB888.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/PainterRGB888Bitmap.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/PainterRGB888L8Bitmap.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/PainterRGB888LinearGradient.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/PainterRGBA2222.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/PainterRGBA2222Bitmap.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/PainterXRGB8888.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/PainterXRGB8888Bitmap.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/PainterXRGB8888L8Bitmap.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/canvas/Shape.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/graph/AbstractDataGraph.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/graph/Graph.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/graph/GraphElements.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/graph/GraphLabels.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/graph/GraphScroll.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/graph/GraphWrapAndClear.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/graph/GraphWrapAndOverwrite.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/AbstractButton.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/AnimatedImage.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/AnimationTextureMapper.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/Box.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/BoxWithBorder.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/Button.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/ButtonWithIcon.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/ButtonWithLabel.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/Gauge.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/Image.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/Keyboard.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/PixelDataWidget.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/RadioButton.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/RadioButtonGroup.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/RepeatButton.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/ScalableImage.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/SnapshotWidget.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/SVGImage.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/TextArea.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/TextAreaWithWildcard.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/TextureMapper.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/TiledImage.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/ToggleButton.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/TouchArea.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/VideoWidget.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/widgets/Widget.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/Application.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/Bitmap.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/Callback.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/Color.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/ConstFont.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/Drawable.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/EasingEquations.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/Event.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/Font.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/FontManager.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/InternalFlashFont.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/JSMOCHelper.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/Math3D.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/Matrix3x3.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/Screen.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/TextProvider.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/Texts.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/TextureMapTypes.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/TypedText.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/UIEventListener.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/Unicode.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/Utils.hpp
+        Com_viso/touchgfx/framework/include/touchgfx/Version.hpp
+        Com_viso/touchgfx/framework/source/platform/driver/touch/SDL2TouchController.cpp
+        Com_viso/touchgfx/framework/source/platform/hal/simulator/sdl2/HALSDL2.cpp
+        Com_viso/touchgfx/framework/source/platform/hal/simulator/sdl2/HALSDL2_icon.cpp
+        Com_viso/touchgfx/framework/source/platform/hal/simulator/sdl2/OSWrappers.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/containers/clock/AbstractClock.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/containers/clock/AnalogClock.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/containers/clock/DigitalClock.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/containers/progress_indicators/AbstractDirectionProgress.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/containers/progress_indicators/AbstractProgressIndicator.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/containers/progress_indicators/BoxProgress.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/containers/progress_indicators/CircleProgress.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/containers/progress_indicators/ImageProgress.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/containers/progress_indicators/LineProgress.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/containers/progress_indicators/TextProgress.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/containers/scrollers/DrawableList.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/containers/scrollers/ScrollBase.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/containers/scrollers/ScrollList.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/containers/scrollers/ScrollWheel.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/containers/scrollers/ScrollWheelBase.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/containers/scrollers/ScrollWheelWithSelectionStyle.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/containers/CacheableContainer.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/containers/Container.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/containers/ListLayout.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/containers/ModalWindow.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/containers/ScrollableContainer.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/containers/SlideMenu.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/containers/Slider.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/containers/SwipeContainer.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/containers/ZoomAnimationImage.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/canvas/AbstractShape.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/canvas/Canvas.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/canvas/CanvasWidget.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/canvas/Circle.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/canvas/CWRVectorRenderer.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/canvas/Line.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/canvas/PainterABGR2222.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/canvas/PainterABGR2222Bitmap.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/canvas/PainterARGB2222.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/canvas/PainterARGB2222Bitmap.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/canvas/PainterARGB8888.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/canvas/PainterARGB8888Bitmap.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/canvas/PainterARGB8888L8Bitmap.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/canvas/PainterBGRA2222.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/canvas/PainterBGRA2222Bitmap.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/canvas/PainterBW.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/canvas/PainterBWBitmap.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/canvas/PainterGRAY2.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/canvas/PainterGRAY2Bitmap.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/canvas/PainterGRAY4.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/canvas/PainterGRAY4Bitmap.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/canvas/PainterRGB565.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/canvas/PainterRGB565Bitmap.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/canvas/PainterRGB565L8Bitmap.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/canvas/PainterRGB565LinearGradient.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/canvas/PainterRGB888.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/canvas/PainterRGB888Bitmap.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/canvas/PainterRGB888L8Bitmap.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/canvas/PainterRGB888LinearGradient.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/canvas/PainterRGBA2222.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/canvas/PainterRGBA2222Bitmap.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/canvas/PainterXRGB8888.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/canvas/PainterXRGB8888Bitmap.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/canvas/PainterXRGB8888L8Bitmap.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/graph/AbstractDataGraph.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/graph/Graph.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/graph/GraphElements.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/graph/GraphLabels.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/graph/GraphScroll.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/graph/GraphWrapAndClear.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/graph/GraphWrapAndOverwrite.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/AbstractButton.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/AnimatedImage.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/AnimationTextureMapper.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/Box.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/BoxWithBorder.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/Button.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/ButtonWithIcon.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/ButtonWithLabel.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/Gauge.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/Image.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/Keyboard.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/PixelDataWidget.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/RadioButton.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/RepeatButton.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/ScalableImage.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/SnapshotWidget.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/SVGImage.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/TextArea.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/TextAreaWithWildcard.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/TextureMapper.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/TiledImage.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/ToggleButton.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/TouchArea.cpp
+        Com_viso/touchgfx/framework/source/touchgfx/widgets/VideoWidget.cpp
+        Com_viso/touchgfx/os/OSWrappers.cpp
+        Com_viso/touchgfx/os/OSWrappers_cmsis.cpp Com_viso/touchgfx/os/FreeRTOS.h)

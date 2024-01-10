@@ -25,6 +25,7 @@ typedef struct PI{
 	float Tn;
 	float Tv;
     float uk;
+    float *anti_windup;
 }PI;
 typedef struct PT1{
     float Kv; //Verstärkung
@@ -43,7 +44,7 @@ void config_P(P *data,float K);
 //funktion um den neuen Wert neu zu berechnen
 void recall_P(P *data,float val);
 //funktion zum konfiguirieren eines PI Gliedes
-void config_PID(PI *data,float K_r,float T, float Tn, float Tv);
+void config_PID(PI *data,float *max_antiwinup, float K_r,float T, float Tn, float Tv);
 //funktion um einen Weiteren wert zu einem PI Glied hinzuzufügen
 void add_val_PID(PI *data,float ek);
 //funktion zum konfigurieren eines PT1 Gliedes

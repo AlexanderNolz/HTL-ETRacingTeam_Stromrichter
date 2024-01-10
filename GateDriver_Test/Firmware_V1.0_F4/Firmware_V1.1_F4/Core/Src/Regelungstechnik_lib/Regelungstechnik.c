@@ -22,7 +22,7 @@ void recall_P(P *data,float val){
     data->val= val * data->K;
 }
 //funktion zum konfiguirieren eines PI Gliedes
-void config_PID(PI *data,float Kr,float T, float Tn, float Tv){
+void config_PID(PI *data,float *max_antiwinup,float Kr,float T, float Tn, float Tv){
 	data->K_r=Kr;
 	data->T=T;
 	data->Tn=Tn;
@@ -32,13 +32,14 @@ void config_PID(PI *data,float Kr,float T, float Tn, float Tv){
 	data->ek_2=0;
 	data->uk_1=0;
 	data->uk=0;
+	*data->anti_windup=*max_antiwinup;
 }
 //funktion um einen Weiteren wert zu einem PI Glied hinzuzufügen
 void add_val_PID(PI *data,float ek){
 	data->ek=ek;
-	data->uk = data->uk_1 + data->K_r*(data->ek-data->ek_1+data->T/data->Tn*data->ek+data->Tv/data->T*(data->ek-2*data->ek_1+data->ek_2));
-	if(data->uk > 27.0f){
-		data->uk = 27.0f;
+	data->uk = data->uk_1 + data->K_r*(data->ek-data->ek_1+data->T/data->Tn*data->ek);//+data->Tv/data->T*(data->ek-2*data->ek_1+data->ek_2));
+	if(data->uk > *data->anti_windup){
+		data->uk = *data->anti_windup;
 	}
 	data->uk_1=data->uk;
 	data->ek_2=data->ek_1;

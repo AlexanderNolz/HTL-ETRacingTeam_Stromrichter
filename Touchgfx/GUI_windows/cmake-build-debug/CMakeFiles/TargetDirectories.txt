@@ -1,0 +1,3 @@
+C:/Users/alexn/STM32CubeIDE/Gitsync/Touchgfx/GUI_windows/cmake-build-debug/CMakeFiles/GUI_windows.dir
+C:/Users/alexn/STM32CubeIDE/Gitsync/Touchgfx/GUI_windows/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/alexn/STM32CubeIDE/Gitsync/Touchgfx/GUI_windows/cmake-build-debug/CMakeFiles/rebuild_cache.dir

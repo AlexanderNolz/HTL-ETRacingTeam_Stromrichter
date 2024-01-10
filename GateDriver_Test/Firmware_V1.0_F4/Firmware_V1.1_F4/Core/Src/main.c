@@ -154,15 +154,15 @@ int main(void)
   HAL_ADC_Start_DMA(&hadc3, (uint32_t*) adc_in3, 3);
 
   init_clark(&Clark);
-#define Kr 0.7f
-#define TN 0.0002f
+#define Kr 0.05f
+#define TN 0.0001f
 #define TV 0.000048f
 
 
+setupTHIMPWM(800, &THIPWM);
+  config_PID(&PI_Regler_alpha,&THIPWM.maximum_Us_b,Kr,0.0001,TN,TV);
+  config_PID(&PI_Regler_beta,&THIPWM.maximum_Us_b, Kr,0.0001,TN,TV);
 
-  config_PID(&PI_Regler_alpha,Kr,0.0000625,TN,TV);
-  config_PID(&PI_Regler_beta, Kr,0.0000625,TN,TV);
-  setupTHIMPWM(1050, &THIPWM);
 
   /* USER CODE END 2 */
 
@@ -217,7 +217,7 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV4;
 
   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK)
   {
@@ -321,10 +321,10 @@ static void MX_ADC3_Init(void)
   hadc3.Init.ScanConvMode = ENABLE;
   hadc3.Init.ContinuousConvMode = DISABLE;
   hadc3.Init.DiscontinuousConvMode = DISABLE;
-  hadc3.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
-  hadc3.Init.ExternalTrigConv = ADC_SOFTWARE_START;
+  hadc3.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_RISING;
+  hadc3.Init.ExternalTrigConv = ADC_EXTERNALTRIGCONV_T1_CC1;
   hadc3.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  hadc3.Init.NbrOfConversion = 3;
+  hadc3.Init.NbrOfConversion = 2;
   hadc3.Init.DMAContinuousRequests = DISABLE;
   hadc3.Init.EOCSelection = ADC_EOC_SEQ_CONV;
   if (HAL_ADC_Init(&hadc3) != HAL_OK)
@@ -346,15 +346,6 @@ static void MX_ADC3_Init(void)
   */
   sConfig.Channel = ADC_CHANNEL_15;
   sConfig.Rank = 2;
-  if (HAL_ADC_ConfigChannel(&hadc3, &sConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
-  */
-  sConfig.Channel = ADC_CHANNEL_9;
-  sConfig.Rank = 3;
   if (HAL_ADC_ConfigChannel(&hadc3, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -387,7 +378,7 @@ static void MX_TIM1_Init(void)
   htim1.Instance = TIM1;
   htim1.Init.Prescaler = 5-1;
   htim1.Init.CounterMode = TIM_COUNTERMODE_CENTERALIGNED1;
-  htim1.Init.Period = 1050;
+  htim1.Init.Period = 800;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim1.Init.RepetitionCounter = 1;
   htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
@@ -423,7 +414,7 @@ static void MX_TIM1_Init(void)
   sBreakDeadTimeConfig.OffStateRunMode = TIM_OSSR_DISABLE;
   sBreakDeadTimeConfig.OffStateIDLEMode = TIM_OSSI_DISABLE;
   sBreakDeadTimeConfig.LockLevel = TIM_LOCKLEVEL_OFF;
-  sBreakDeadTimeConfig.DeadTime = 205-1;
+  sBreakDeadTimeConfig.DeadTime = 255-1;
   sBreakDeadTimeConfig.BreakState = TIM_BREAK_DISABLE;
   sBreakDeadTimeConfig.BreakPolarity = TIM_BREAKPOLARITY_HIGH;
   sBreakDeadTimeConfig.AutomaticOutput = TIM_AUTOMATICOUTPUT_DISABLE;
@@ -565,9 +556,9 @@ static void MX_DMA_Init(void)
   /* DMA1_Stream1_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Stream1_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Stream1_IRQn);
-  /* DMA2_Stream1_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA2_Stream1_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA2_Stream1_IRQn);
+  /* DMA2_Stream0_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
   /* DMA2_Stream4_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA2_Stream4_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA2_Stream4_IRQn);
@@ -675,10 +666,16 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim){
 		HAL_GPIO_WritePin(test_GPIO_Port, test_Pin, 1);
 		//HAL_GPIO_TogglePin(test_GPIO_Port, test_Pin);
 		HAL_ADC_Start_DMA(&hadc1, (uint32_t*) adc_in1, 3);
-		 int32_t sin = adc_in3[1]-3103;
-		 int32_t cos = adc_in3[0]-3103;
+		 int32_t sin = adc_in3[1]-2879;
+		 int32_t cos = adc_in3[0]-2879;
 		 theta= atan2f((float)(cos),(float)(sin));
-		 Is_q=15.0f*gasgriff();
+		 theta+=42.5f/180.0f*M_PI;
+		 theta*=4.0f;
+
+
+
+
+		 Is_q=100.0f*gasgriff();
 	}
 
 	if(htim == &htim2){
@@ -751,7 +748,7 @@ void recalcduty(){
 	float error_beta = -Park1.beta - Clark.beta;
 	add_val_PID(&PI_Regler_alpha,error_alpha);
 	add_val_PID(&PI_Regler_beta, error_beta);
-	vectorrecalc(PI_Regler_alpha.uk, PI_Regler_beta.uk, 40.0f, &THIPWM);
+	vectorrecalc(PI_Regler_alpha.uk, PI_Regler_beta.uk, 24.0f, &THIPWM);
 	HAL_GPIO_WritePin(test_GPIO_Port, test_Pin, 0);
 }
 
