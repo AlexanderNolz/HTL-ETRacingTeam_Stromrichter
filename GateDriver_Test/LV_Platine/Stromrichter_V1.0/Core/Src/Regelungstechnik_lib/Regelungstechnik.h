@@ -4,6 +4,8 @@
 
 #ifndef REGELUNGSTECHNIK_REGELUNGSTECHNIK_H
 #define REGELUNGSTECHNIK_REGELUNGSTECHNIK_H
+#include "stdint.h"
+
 //Integrator struct
 typedef struct Integrator{
     float val;
@@ -27,10 +29,12 @@ typedef struct PI{
     float uk;
 }PI;
 typedef struct PT1{
-    float Kv; //Verstärkung
-    float tau; //Zeitkonstante
+    float K; //Verstärkung
+    float dt; //Zeitkonstante
     float y; // Ausgang
-    float last_Input; //Letzter Eingang
+    float y_1;
+    float T;
+    float u;
 
 }PT1;
 
@@ -45,7 +49,7 @@ void recall_P(P *data,float val);
 //funktion zum konfiguirieren eines PI Gliedes
 void config_PID(PI *data, float K_r,float T, float Tn, float Tv);
 //funktion um einen Weiteren wert zu einem PI Glied hinzuzufügen
-void add_val_PID(PI *data,float ek,float anti_windup);
+void add_val_PID(PI *data,float ek,float anti_windup,uint8_t ein);
 //funktion zum konfigurieren eines PT1 Gliedes
 void config_PT1(PT1 *data,float K,float tau);
 //funktion um einen weitern wert zu einem PT1 Gliedes hinzuzufügen

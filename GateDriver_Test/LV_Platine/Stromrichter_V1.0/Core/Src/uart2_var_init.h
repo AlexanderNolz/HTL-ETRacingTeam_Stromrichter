@@ -32,12 +32,12 @@ void senduart(uint8_t reinfolge){
 	switch (reinfolge) {
 		case uart_strom_adress:
 
-			uart2_tx_buffer[1]=0xFF & floattoword_1_komma(Strom_UVW[0]);
-			uart2_tx_buffer[2]=floattoword_1_komma(Strom_UVW[0])>>8;
-			uart2_tx_buffer[3]=0xFF & floattoword_1_komma(Strom_UVW[1]);
-			uart2_tx_buffer[4]=floattoword_1_komma(Strom_UVW[1])>>8;
-			uart2_tx_buffer[5]=0xFF & floattoword_1_komma(Strom_UVW[2]);
-			uart2_tx_buffer[6]=floattoword_1_komma(Strom_UVW[2])>>8;
+			uart2_tx_buffer[1]=0xFF & floattoword_1_komma(Strom_UVW_mit_offset[0]);
+			uart2_tx_buffer[2]=floattoword_1_komma(Strom_UVW_mit_offset[0])>>8;
+			uart2_tx_buffer[3]=0xFF & floattoword_1_komma(Strom_UVW_mit_offset[1]);
+			uart2_tx_buffer[4]=floattoword_1_komma(Strom_UVW_mit_offset[1])>>8;
+			uart2_tx_buffer[5]=0xFF & floattoword_1_komma(Strom_UVW_mit_offset[2]);
+			uart2_tx_buffer[6]=floattoword_1_komma(Strom_UVW_mit_offset[2])>>8;
 			break;
 		default:
 			break;

@@ -137,14 +137,15 @@ int main(void)
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_ADC1_Init();
+  MX_ADC3_Init();
+  MX_ADC2_Init();
   MX_TIM1_Init();
   MX_UART5_Init();
   MX_USART2_UART_Init();
   MX_TIM10_Init();
   MX_USART3_UART_Init();
   MX_TIM3_Init();
-  MX_ADC3_Init();
-  MX_ADC2_Init();
+
   /* USER CODE BEGIN 2 */
   //####################################################################################################
   //THIPWM init
@@ -157,6 +158,10 @@ int main(void)
   config_PID(&PI_Regler_alpha, Kr,T_pwm , TN, TV);
   config_PID(&PI_Regler_beta, Kr,T_pwm , TN, TV);
   config_PID(&V_Stromregler,Kr,T_pwm,TN,TV);
+  //####################################################################################################
+  config_PT1(&offset_corrc_U, PT1_offset_K, PT1_offset_T);
+  config_PT1(&offset_corrc_V, PT1_offset_K, PT1_offset_T);
+  config_PT1(&offset_corrc_W, PT1_offset_K, PT1_offset_T);
 
 
   /* USER CODE END 2 */
@@ -395,7 +400,7 @@ static void MX_ADC3_Init(void)
   hadc3.Init.DataAlign = ADC_DATAALIGN_RIGHT;
   hadc3.Init.NbrOfConversion = 2;
   hadc3.Init.DMAContinuousRequests = DISABLE;
-  hadc3.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
+  hadc3.Init.EOCSelection = ADC_EOC_SEQ_CONV;
   if (HAL_ADC_Init(&hadc3) != HAL_OK)
   {
     Error_Handler();
@@ -507,10 +512,10 @@ static void MX_TIM1_Init(void)
   //####################################################################################################
   //Starten aller timer Channels für die PWM
   //####################################################################################################
-  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+  //HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
-  HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_1);
+  //HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_1);
   HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_2);
   HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_3);
   HAL_TIM_Base_Start_IT(&htim1);
@@ -543,9 +548,9 @@ static void MX_TIM3_Init(void)
   //####################################################################################################
   /* USER CODE END TIM3_Init 1 */
   htim3.Instance = TIM3;
-  htim3.Init.Prescaler = 18-1;
+  htim3.Init.Prescaler = 3-1;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = 5-1;
+  htim3.Init.Period = 30-1;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
@@ -568,7 +573,7 @@ static void MX_TIM3_Init(void)
     Error_Handler();
   }
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 25-1;
+  sConfigOC.Pulse = 10-1;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
@@ -865,25 +870,25 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc){
 	if(hadc == &hadc1){
 		//es wird geprüft ob die pwm enable ist wenn dies der fall ist wird Strom in
 		//seinen Register geschrieben
+		Strom_UVW_mit_offset[0]=((float)(ADC1_Strom_UVW[0]))/3.8f;
+		Strom_UVW_mit_offset[1]=((float)(ADC1_Strom_UVW[1]))/3.8f;
+		Strom_UVW_mit_offset[2]=((float)(ADC1_Strom_UVW[2]))/3.8f;
+
 		if(enable){
 			// hier wird der offset abgezogen und dann durch 10 dividiert 10 ADC einheiten
 			//ist 1 Ampere
 
-			Strom_UVW_int[0]=ADC1_Strom_UVW[0]-ADC1_Strom_UVW_offsett[0];
-			Strom_UVW_int[1]=ADC1_Strom_UVW[1]-ADC1_Strom_UVW_offsett[1];
-			Strom_UVW_int[2]=ADC1_Strom_UVW[2]-ADC1_Strom_UVW_offsett[2];
-
-
-
-			Strom_UVW[0]=((float)(Strom_UVW_int[0]))/3.51818f;
-			Strom_UVW[1]=((float)(Strom_UVW_int[1]))/3.51818f;
-			Strom_UVW[2]=((float)(Strom_UVW_int[2]))/3.51818f;
+			Strom_UVW[0]=Strom_UVW_mit_offset[0]-offset_corrc_U.y;
+			Strom_UVW[1]=Strom_UVW_mit_offset[1]-offset_corrc_V.y;
+			Strom_UVW[2]=Strom_UVW_mit_offset[2]-offset_corrc_W.y;
 
 		}else{
-			ADC1_Strom_UVW_offsett[0]=ADC1_Strom_UVW[0];
-			ADC1_Strom_UVW_offsett[1]=ADC1_Strom_UVW[1];
-			ADC1_Strom_UVW_offsett[2]=ADC1_Strom_UVW[2];
+
+			add_val_PT1(&offset_corrc_U, Strom_UVW_mit_offset[0], 0.0001f);
+			add_val_PT1(&offset_corrc_V, Strom_UVW_mit_offset[1], 0.0001f);
+			add_val_PT1(&offset_corrc_W, Strom_UVW_mit_offset[2], 0.0001f);
 		}
+
 		HAL_ADC_Start_DMA(&hadc3, (uint32_t*) ADC3_Endcoder_sin_cos, 2);
 
 
@@ -891,14 +896,14 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc){
 	if(hadc == &hadc3){
 
 		theta=calctheta(ADC3_Endcoder_sin_cos[0], ADC3_Endcoder_sin_cos[1]);
-		recalc_clark(&Clark, Strom_UVW[0], Strom_UVW[1], Strom_UVW[2]);
+		recalc_clark(&Clark, Strom_UVW_mit_offset[0], Strom_UVW_mit_offset[1], Strom_UVW_mit_offset[2]);
 		recalc_park(&Park1, Id, Iq, theta);
 		float error_alpha = 10.0f - Clark.alpha;
 		float error_beta = -0.0f - Clark.beta;
 		float error_v = 10.0f - Strom_UVW[1];
-		add_val_PID(&V_Stromregler, error_v, 10.0f);
-		add_val_PID(&PI_Regler_alpha,error_alpha,THIPWM.maximum_Us_b);
-		add_val_PID(&PI_Regler_beta, error_beta,THIPWM.maximum_Us_b);
+		add_val_PID(&V_Stromregler, error_v, 10.0f, enable);
+		add_val_PID(&PI_Regler_alpha,error_alpha,THIPWM.maximum_Us_b, enable);
+		add_val_PID(&PI_Regler_beta, error_beta,THIPWM.maximum_Us_b, enable);
 		vectorrecalc(PI_Regler_alpha.uk, PI_Regler_beta.uk, 40.0f, &THIPWM);
 		float Uv = V_Stromregler.uk/40.0f * 499.0f;
 		V_pwm = 499 + (int)(Uv);
