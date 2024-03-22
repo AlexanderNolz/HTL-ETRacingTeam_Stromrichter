@@ -54,7 +54,7 @@ int vectorrecalc(float alpha, float beta, float busvoltage,THIPWMdata *THIPWM){
     THIPWM->B=(-alpha_div1_3)+beta_div1_3_sqrt2_3;
     THIPWM->C=(-alpha_div1_3)-beta_div1_3_sqrt2_3;
     //Wenn der faktor M größer wie 1 ist wird die 3 harmonische iniziert
-    if(1){
+    if(THIPWM->M > 1){
         // es wird die 3 harmonische ausgerechnet
         float thirdharmonic = THIPWM->alpha*(THIPWM->alpha*THIPWM->alpha-3.0f*THIPWM->beta*THIPWM->beta)/(THIPWM->alpha*THIPWM->alpha+THIPWM->beta*THIPWM->beta)/9;
         //es wird die 3 harmonische iniziert

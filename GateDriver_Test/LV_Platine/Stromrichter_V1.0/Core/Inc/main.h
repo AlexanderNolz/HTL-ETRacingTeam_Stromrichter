@@ -81,6 +81,8 @@ void Error_Handler(void);
 #define Strom_filter_clock_GPIO_Port GPIOC
 #define cos_sin_clock_Pin GPIO_PIN_9
 #define cos_sin_clock_GPIO_Port GPIOC
+#define test_pin_Pin GPIO_PIN_10
+#define test_pin_GPIO_Port GPIOC
 
 /* USER CODE BEGIN Private defines */
 

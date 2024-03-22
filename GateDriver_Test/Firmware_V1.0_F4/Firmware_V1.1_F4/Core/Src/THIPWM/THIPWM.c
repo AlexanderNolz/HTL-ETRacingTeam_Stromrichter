@@ -1,6 +1,9 @@
 //
 // Created by Alexander Nolz on 20.06.2023.
 //
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "THIPWM.h"
 #include <math.h>
@@ -67,3 +70,7 @@ int vectorrecalc(float alpha, float beta, float busvoltage,THIPWMdata *THIPWM){
     THIPWM->TIMCOMPC= (unsigned int)(THIPWM->TIM_ReloadVal_halbe + THIPWM->TIM_ReloadVal * (THIPWM->C/THIPWM->U_zk));
     return status;
 }
+
+#ifdef __cplusplus
+}
+#endif

@@ -28,9 +28,7 @@
   //####################################################################################################
 //hier werden alle variablen für den Endcoder um den adc3 intialisiert
 #include "adc3_endcoder_var.h"
-  //####################################################################################################
-// hier werden alle variablen die für die Kommunikation mit dem PC benötigt werden definiert
-#include "uart2_var_init.h"
+
   //####################################################################################################
 //THIPWM libary
 #include "THIPWM/THIPWM.h"
@@ -42,6 +40,9 @@
 #include "Clark_Transformation/Clark_Transformation.h"
   //####################################################################################################
 #include "regler_transformationen_var.h"
+  //####################################################################################################
+// hier werden alle variablen die für die Kommunikation mit dem PC benötigt werden definiert
+#include "uart2_var_init.h"
 
 /* USER CODE END Includes */
 
@@ -52,8 +53,6 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-PI V_Stromregler;
-uint32_t V_pwm;
 
 /* USER CODE END PD */
 
@@ -72,11 +71,10 @@ DMA_HandleTypeDef hdma_adc3;
 
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim3;
-TIM_HandleTypeDef htim10;
+TIM_HandleTypeDef htim14;
 
 UART_HandleTypeDef huart5;
 UART_HandleTypeDef huart2;
-UART_HandleTypeDef huart3;
 DMA_HandleTypeDef hdma_usart2_tx;
 DMA_HandleTypeDef hdma_usart2_rx;
 
@@ -89,15 +87,13 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
 static void MX_ADC1_Init(void);
-static void MX_ADC3_Init(void);
-static void MX_ADC2_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_UART5_Init(void);
 static void MX_USART2_UART_Init(void);
-static void MX_TIM10_Init(void);
-static void MX_USART3_UART_Init(void);
 static void MX_TIM3_Init(void);
-
+static void MX_ADC3_Init(void);
+static void MX_ADC2_Init(void);
+static void MX_TIM14_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -142,10 +138,9 @@ int main(void)
   MX_TIM1_Init();
   MX_UART5_Init();
   MX_USART2_UART_Init();
-  MX_TIM10_Init();
-  MX_USART3_UART_Init();
   MX_TIM3_Init();
 
+  MX_TIM14_Init();
   /* USER CODE BEGIN 2 */
   //####################################################################################################
   //THIPWM init
@@ -155,14 +150,30 @@ int main(void)
   init_clark(&Clark);
   //####################################################################################################
   //Regler init
-  config_PID(&PI_Regler_alpha, Kr,T_pwm , TN, TV);
-  config_PID(&PI_Regler_beta, Kr,T_pwm , TN, TV);
-  config_PID(&V_Stromregler,Kr,T_pwm,TN,TV);
+  config_PID(&Regler_alpha, Kr, T_pwm, Tn, Tv);
+  config_PID(&Regler_beta, Kr, T_pwm, Tn, Tv);
+  config_PDT1(&filter_alpha, T_pwm, T1_PDT1, T2_PDT1, 1.0f);
+  config_PDT1(&filter_beta, T_pwm, T1_PDT1, T2_PDT1, 1.0f);
+
   //####################################################################################################
   config_PT1(&offset_corrc_U, PT1_offset_K, PT1_offset_T);
   config_PT1(&offset_corrc_V, PT1_offset_K, PT1_offset_T);
   config_PT1(&offset_corrc_W, PT1_offset_K, PT1_offset_T);
+  config_didt_p(&di_dt_schutz, di_dt_max);
 
+  config_PT1(&theta_is_filter, 1, 0.1f);
+  //####################################################################################################
+  //Starten aller timer Channels für die PWM
+  //####################################################################################################
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
+  HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_1);
+  HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_2);
+  HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_3);
+  HAL_TIM_Base_Start_IT(&htim1);
+
+  config_PT1(&omega_filter, 1, 0.1f);
 
   /* USER CODE END 2 */
 
@@ -170,11 +181,15 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  enable = 0x1 & status;
+	  enable = (0x1 & status) & !di_dt_schutz.error;
 	  trenner = status>>1 & 0x1;
 
 	  HAL_GPIO_WritePin(Trenner_GPIO_Port, Trenner_Pin, trenner);
 	  HAL_GPIO_WritePin(GATE_Treiber_RST_ENA_GPIO_Port, GATE_Treiber_RST_ENA_Pin, enable);
+
+	  if(di_dt_schutz.error && !(0x1 & status)){
+		  di_dt_schutz.error=0;
+	  }
 
     /* USER CODE END WHILE */
 
@@ -259,7 +274,7 @@ static void MX_ADC1_Init(void)
   /** Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
   */
   hadc1.Instance = ADC1;
-  hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV8;
+  hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;
   hadc1.Init.Resolution = ADC_RESOLUTION_12B;
   hadc1.Init.ScanConvMode = ENABLE;
   hadc1.Init.ContinuousConvMode = DISABLE;
@@ -279,7 +294,7 @@ static void MX_ADC1_Init(void)
   */
   sConfig.Channel = ADC_CHANNEL_1;
   sConfig.Rank = 1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_144CYCLES;
+  sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -329,7 +344,7 @@ static void MX_ADC2_Init(void)
   /** Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
   */
   hadc2.Instance = ADC2;
-  hadc2.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV8;
+  hadc2.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;
   hadc2.Init.Resolution = ADC_RESOLUTION_12B;
   hadc2.Init.ScanConvMode = ENABLE;
   hadc2.Init.ContinuousConvMode = DISABLE;
@@ -390,7 +405,7 @@ static void MX_ADC3_Init(void)
   /** Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
   */
   hadc3.Instance = ADC3;
-  hadc3.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV8;
+  hadc3.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;
   hadc3.Init.Resolution = ADC_RESOLUTION_12B;
   hadc3.Init.ScanConvMode = ENABLE;
   hadc3.Init.ContinuousConvMode = DISABLE;
@@ -453,9 +468,9 @@ static void MX_TIM1_Init(void)
   //####################################################################################################
   /* USER CODE END TIM1_Init 1 */
   htim1.Instance = TIM1;
-  htim1.Init.Prescaler = 9-1;
+  htim1.Init.Prescaler = 3-1;
   htim1.Init.CounterMode = TIM_COUNTERMODE_CENTERALIGNED1;
-  htim1.Init.Period = 1000-1;
+  htim1.Init.Period = 1500-1;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim1.Init.RepetitionCounter = 1;
   htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
@@ -509,16 +524,6 @@ static void MX_TIM1_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN TIM1_Init 2 */
-  //####################################################################################################
-  //Starten aller timer Channels für die PWM
-  //####################################################################################################
-  //HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
-  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
-  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
-  //HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_1);
-  HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_2);
-  HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_3);
-  HAL_TIM_Base_Start_IT(&htim1);
   //####################################################################################################
   /* USER CODE END TIM1_Init 2 */
   HAL_TIM_MspPostInit(&htim1);
@@ -594,39 +599,34 @@ static void MX_TIM3_Init(void)
 }
 
 /**
-  * @brief TIM10 Initialization Function
+  * @brief TIM14 Initialization Function
   * @param None
   * @retval None
   */
-static void MX_TIM10_Init(void)
+static void MX_TIM14_Init(void)
 {
 
-  /* USER CODE BEGIN TIM10_Init 0 */
+  /* USER CODE BEGIN TIM14_Init 0 */
 
-  /* USER CODE END TIM10_Init 0 */
+  /* USER CODE END TIM14_Init 0 */
 
-  /* USER CODE BEGIN TIM10_Init 1 */
-	  //####################################################################################################
-	//Der TIM10 ist dafür da alle 50 ms einen Interrupt auszulösen
-	//der an einen Verbundenen Computer wenn dies der Fall ist Daten aus den Microcontroller zu senden
-	  //####################################################################################################
-  /* USER CODE END TIM10_Init 1 */
-  htim10.Instance = TIM10;
-  htim10.Init.Prescaler = 1800-1;
-  htim10.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim10.Init.Period = 5000;
-  htim10.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim10.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  if (HAL_TIM_Base_Init(&htim10) != HAL_OK)
+  /* USER CODE BEGIN TIM14_Init 1 */
+
+  /* USER CODE END TIM14_Init 1 */
+  htim14.Instance = TIM14;
+  htim14.Init.Prescaler = 1800-1;
+  htim14.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim14.Init.Period = 2500-1;
+  htim14.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim14.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim14) != HAL_OK)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN TIM10_Init 2 */
-  //####################################################################################################
-  // Starten des Timers
-  HAL_TIM_Base_Start_IT(&htim10);
-  //####################################################################################################
-  /* USER CODE END TIM10_Init 2 */
+  /* USER CODE BEGIN TIM14_Init 2 */
+  HAL_TIM_Base_Start_IT(&htim14);
+
+  /* USER CODE END TIM14_Init 2 */
 
 }
 
@@ -700,39 +700,6 @@ static void MX_USART2_UART_Init(void)
 }
 
 /**
-  * @brief USART3 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_USART3_UART_Init(void)
-{
-
-  /* USER CODE BEGIN USART3_Init 0 */
-
-  /* USER CODE END USART3_Init 0 */
-
-  /* USER CODE BEGIN USART3_Init 1 */
-
-  /* USER CODE END USART3_Init 1 */
-  huart3.Instance = USART3;
-  huart3.Init.BaudRate = 115200;
-  huart3.Init.WordLength = UART_WORDLENGTH_8B;
-  huart3.Init.StopBits = UART_STOPBITS_1;
-  huart3.Init.Parity = UART_PARITY_NONE;
-  huart3.Init.Mode = UART_MODE_TX_RX;
-  huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  huart3.Init.OverSampling = UART_OVERSAMPLING_16;
-  if (HAL_UART_Init(&huart3) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN USART3_Init 2 */
-
-  /* USER CODE END USART3_Init 2 */
-
-}
-
-/**
   * Enable DMA controller clock
   */
 static void MX_DMA_Init(void)
@@ -782,12 +749,22 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, GATE_Treiber_RST_ENA_Pin|Trenner_Pin, GPIO_PIN_RESET);
 
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(test_pin_GPIO_Port, test_pin_Pin, GPIO_PIN_RESET);
+
   /*Configure GPIO pins : GATE_Treiber_RST_ENA_Pin Trenner_Pin */
   GPIO_InitStruct.Pin = GATE_Treiber_RST_ENA_Pin|Trenner_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : test_pin_Pin */
+  GPIO_InitStruct.Pin = test_pin_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(test_pin_GPIO_Port, &GPIO_InitStruct);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
@@ -805,46 +782,41 @@ static void MX_GPIO_Init(void)
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	  //####################################################################################################
-	if (htim->Instance == TIM10) {
+	if (htim->Instance == TIM14) {
+			HAL_GPIO_WritePin(test_pin_GPIO_Port, test_pin_Pin, 1);
 	        //Interrupt für TIM10 UART transmit alle 50 ms
 			uart2_tx_buffer[9]=status;
 			//schreibt immer wieder andere Werte in den TX buffer und sendet diese
-			if(uart_row>0x8){uart_row=0;}
-			senduart(uart_row);
-			HAL_UART_Transmit_DMA(&huart2, uart2_tx_buffer, 10);
-			uart_row++;
+			senduart();
+			HAL_UART_Transmit_DMA(&huart2, uart2_tx_buffer, sizeof(uart2_tx_buffer));
 			//alle 50 ms wir gaspedal gemessen und Batterie SPG
 			gas=clalc_gas(ADC2_gas_uzk[1]);
 			uzk=clalc_uzk(ADC2_gas_uzk[0]);
 			HAL_ADC_Start_DMA(&hadc2, ADC2_gas_uzk, 2);
+			HAL_GPIO_WritePin(test_pin_GPIO_Port, test_pin_Pin, 0);
 	    }
 	  //####################################################################################################
 	// Timer1 dieser timer ist für die PHASEN Pwm verantwortlich und startet die Strommessung
 
 	if (htim->Instance == TIM1) {
+
 		if((enable)){
-					TIM1->CCR1=0;
-					TIM1->CCR2=V_pwm;
-					TIM1->CCR3=499;
+					TIM1->CCR1=THIPWM.TIMCOMPA;
+					TIM1->CCR2=THIPWM.TIMCOMPB;
+					TIM1->CCR3=THIPWM.TIMCOMPC;
 				}else{
 					TIM1->CCR1=0;
 					TIM1->CCR2=0;
 					TIM1->CCR3=0;
-
-					PI_Regler_alpha.ek_1 = 0;
-					PI_Regler_alpha.ek_2 = 0;
-					PI_Regler_alpha.uk_1 = 0;
-					PI_Regler_beta.ek_1 = 0;
-					PI_Regler_beta.ek_2 = 0;
-					PI_Regler_beta.uk_1 = 0;
 				}
 
 		  //####################################################################################################
 		//starten eines neues Strommessungs taktes und endcoder messen
-
 		HAL_ADC_Start_DMA(&hadc1, (uint32_t*) ADC1_Strom_UVW, 3);
-
-
+		theta_is_soll=atan2f(-Park1.beta, Park1.alpha);
+		theta_is_ist=atan2f(Clark.beta, Clark.alpha);
+		theta_is_differenz=(theta_is_soll)-theta_is_ist;
+		add_val_PT1(&theta_is_filter, theta_is_differenz, T_pwm);
 
 	}
 
@@ -870,11 +842,11 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc){
 	if(hadc == &hadc1){
 		//es wird geprüft ob die pwm enable ist wenn dies der fall ist wird Strom in
 		//seinen Register geschrieben
-		Strom_UVW_mit_offset[0]=((float)(ADC1_Strom_UVW[0]))/3.8f;
-		Strom_UVW_mit_offset[1]=((float)(ADC1_Strom_UVW[1]))/3.8f;
-		Strom_UVW_mit_offset[2]=((float)(ADC1_Strom_UVW[2]))/3.8f;
+		Strom_UVW_mit_offset[0]=((float)(ADC1_Strom_UVW[0]))/3.3f;
+		Strom_UVW_mit_offset[1]=((float)(ADC1_Strom_UVW[1]))/3.3f;
+		Strom_UVW_mit_offset[2]=((float)(ADC1_Strom_UVW[2]))/3.3f;
 
-		if(enable){
+		if(status& 0x1){
 			// hier wird der offset abgezogen und dann durch 10 dividiert 10 ADC einheiten
 			//ist 1 Ampere
 
@@ -882,34 +854,37 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc){
 			Strom_UVW[1]=Strom_UVW_mit_offset[1]-offset_corrc_V.y;
 			Strom_UVW[2]=Strom_UVW_mit_offset[2]-offset_corrc_W.y;
 
+			recalc_clark(&Clark, Strom_UVW[0], Strom_UVW[1], Strom_UVW[2]);
+			check_di_dt(&di_dt_schutz, Clark.alpha, Clark.beta, T_pwm);
+
 		}else{
 
-			add_val_PT1(&offset_corrc_U, Strom_UVW_mit_offset[0], 0.0001f);
-			add_val_PT1(&offset_corrc_V, Strom_UVW_mit_offset[1], 0.0001f);
-			add_val_PT1(&offset_corrc_W, Strom_UVW_mit_offset[2], 0.0001f);
+			add_val_PT1(&offset_corrc_U, Strom_UVW_mit_offset[0], T_pwm);
+			add_val_PT1(&offset_corrc_V, Strom_UVW_mit_offset[1], T_pwm);
+			add_val_PT1(&offset_corrc_W, Strom_UVW_mit_offset[2], T_pwm);
 		}
+
 
 		HAL_ADC_Start_DMA(&hadc3, (uint32_t*) ADC3_Endcoder_sin_cos, 2);
 
 
 	}
 	if(hadc == &hadc3){
-
+		Iq = 40.0f * gas;
+		Id = 0.0f * gas;
 		theta=calctheta(ADC3_Endcoder_sin_cos[0], ADC3_Endcoder_sin_cos[1]);
-		recalc_clark(&Clark, Strom_UVW_mit_offset[0], Strom_UVW_mit_offset[1], Strom_UVW_mit_offset[2]);
+
+		omega_rotoe=omega(theta_is_soll, 50e-6f);
+
+		theta += 0.81f;
+		theta *= 4.0f;
 		recalc_park(&Park1, Id, Iq, theta);
-		float error_alpha = 10.0f - Clark.alpha;
-		float error_beta = -0.0f - Clark.beta;
-		float error_v = 10.0f - Strom_UVW[1];
-		add_val_PID(&V_Stromregler, error_v, 10.0f, enable);
-		add_val_PID(&PI_Regler_alpha,error_alpha,THIPWM.maximum_Us_b, enable);
-		add_val_PID(&PI_Regler_beta, error_beta,THIPWM.maximum_Us_b, enable);
-		vectorrecalc(PI_Regler_alpha.uk, PI_Regler_beta.uk, 40.0f, &THIPWM);
-		float Uv = V_Stromregler.uk/40.0f * 499.0f;
-		V_pwm = 499 + (int)(Uv);
-
+		float error_alpha = Park1.alpha - Clark.alpha;
+		float error_beta = -Park1.beta - Clark.beta;
+		add_val_PID(&Regler_alpha,error_alpha, THIPWM.alpha, enable);
+		add_val_PID(&Regler_beta, error_beta,THIPWM.beta, enable);
+		vectorrecalc(Regler_alpha.uk, Regler_beta.uk, 50.0f, &THIPWM);
 	}
-
 
 }
 

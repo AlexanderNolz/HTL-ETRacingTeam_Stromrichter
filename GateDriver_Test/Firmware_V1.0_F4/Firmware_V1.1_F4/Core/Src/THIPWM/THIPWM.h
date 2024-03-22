@@ -5,6 +5,10 @@
 #ifndef THIPWM_THIPWM_H
 #define THIPWM_THIPWM_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 //Alle Constanten Defeniert
 #define div1_3 (1.0f/3.0f)
 #define sqrt2_3 sqrtf(3.0f)
@@ -47,5 +51,9 @@ void setupTHIMPWM(float TIM_RelaodVal,THIPWMdata *THIPWM);
  */
 
  int vectorrecalc(float alpha, float beta, float busvoltage,THIPWMdata *THIPWM);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //THIPWM_THIPWM_H

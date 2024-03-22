@@ -1,6 +1,9 @@
+#include <stdio.h>
+#include <string.h>
+
 // TX buffer
 
-uint8_t uart2_tx_buffer[10];
+uint8_t uart2_tx_buffer[100];
 uint8_t uart2_rx_buffer[10];
 
 // variablen
@@ -27,19 +30,16 @@ int16_t floattoword_1_komma(float input){
 	return output;
 }
 //Diese Methode schreibt die wert in abhängigkeit welche gerade drann sind in den tx Buffer
-void senduart(uint8_t reinfolge){
-	uart2_tx_buffer[0]=reinfolge;
-	switch (reinfolge) {
-		case uart_strom_adress:
-
-			uart2_tx_buffer[1]=0xFF & floattoword_1_komma(Strom_UVW_mit_offset[0]);
-			uart2_tx_buffer[2]=floattoword_1_komma(Strom_UVW_mit_offset[0])>>8;
-			uart2_tx_buffer[3]=0xFF & floattoword_1_komma(Strom_UVW_mit_offset[1]);
-			uart2_tx_buffer[4]=floattoword_1_komma(Strom_UVW_mit_offset[1])>>8;
-			uart2_tx_buffer[5]=0xFF & floattoword_1_komma(Strom_UVW_mit_offset[2]);
-			uart2_tx_buffer[6]=floattoword_1_komma(Strom_UVW_mit_offset[2])>>8;
-			break;
-		default:
-			break;
-	}
+void senduart(){
+	float tx_float_buffer[9];
+	tx_float_buffer[0]=theta;
+	tx_float_buffer[1]=Clark.alpha;
+	tx_float_buffer[2]=Clark.beta;
+	tx_float_buffer[3]=Park1.alpha;
+	tx_float_buffer[4]=Park1.beta;
+	tx_float_buffer[5]=Id;
+	tx_float_buffer[6]=Iq;
+	tx_float_buffer[7]=theta_is_filter.y;
+	tx_float_buffer[8]=omega_rotoe;
+	memcpy(uart2_tx_buffer + 20, tx_float_buffer,sizeof(tx_float_buffer));
 }
